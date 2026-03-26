@@ -1,5 +1,7 @@
 using HarmonyLib;
 
+// ReSharper disable InconsistentNaming
+
 namespace CombatRefactor.HarmonyPatches;
 
 [HarmonyPatch(typeof(Verb), nameof(Verb.BurstShotCount), MethodType.Getter)]

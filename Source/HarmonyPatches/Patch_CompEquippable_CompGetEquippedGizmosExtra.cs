@@ -1,5 +1,6 @@
 using HarmonyLib;
-using CombatRefactor.Type;
+
+// ReSharper disable InconsistentNaming
 
 namespace CombatRefactor.HarmonyPatches;
 

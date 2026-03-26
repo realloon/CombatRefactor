@@ -1,4 +1,4 @@
-using CombatRefactor.Type;
+// ReSharper disable InconsistentNaming
 
 namespace CombatRefactor;
 

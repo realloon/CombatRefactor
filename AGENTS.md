@@ -17,4 +17,4 @@ Combat Refactor is a RimWorld mod that reimagines the game's combat experience.
 ## Contributing
 
 - This project is in early internal development, allowing radical refactors
-- Commit format: `[type]: [summary]`
+- Commit format: `type: summary`

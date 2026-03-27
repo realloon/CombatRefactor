@@ -7,4 +7,12 @@
     <suspendable>false</suspendable>
     <allowOpportunisticPrefix>true</allowOpportunisticPrefix>
   </JobDef>
+
+  <JobDef>
+    <defName>CRTeam_SwitchFireMode</defName>
+    <driverClass>CombatRefactor.JobDriver_SwitchFireMode</driverClass>
+    <reportString>正在调整武器快慢机。</reportString>
+    <suspendable>false</suspendable>
+    <allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+  </JobDef>
 </Defs>

@@ -1,6 +1,10 @@
+using Verse.AI;
+
 namespace CombatRefactor;
 
 public class CompFireSelector : ThingComp, IEquippedGizmoProvider {
+    private const int SwitchFireModeTicks = 15;
+
     private FireMode _currentMode;
 
     private CompProperties_FireSelector Props => (CompProperties_FireSelector)props;
@@ -34,17 +38,71 @@ public class CompFireSelector : ThingComp, IEquippedGizmoProvider {
             yield break;
         }
 
-        yield return new Command_Action {
+        var switchFireModeCommand = new Command_Action {
             defaultLabel = GetModeLabel(_currentMode),
             defaultDesc = "Switch shot mode",
             icon = TexCommand.Attack,
             activateSound = SoundDefOf.Click,
-            action = CycleMode,
+            action = () => TryStartSwitchFireModeJob(pawn),
         };
+
+        if (!CanSwitchFireMode(pawn, out var disabledReason)) {
+            switchFireModeCommand.Disable(disabledReason);
+        }
+
+        yield return switchFireModeCommand;
     }
 
-    private void CycleMode() {
+    public bool IsHeldBy(Pawn pawn) {
+        return pawn.equipment?.Primary == parent && GetEquippingPawn() == pawn;
+    }
+
+    private bool IsSwitchingFireMode(Pawn pawn) {
+        return pawn.CurJob?.def == JobDefOf.CRTeam_SwitchFireMode &&
+               pawn.CurJob.targetB.Thing == parent;
+    }
+
+    private bool CanSwitchFireMode(Pawn pawn, out string disabledReason) {
+        if (!IsHeldBy(pawn)) {
+            disabledReason = "未装备当前武器";
+            return false;
+        }
+
+        if (IsSwitchingFireMode(pawn)) {
+            disabledReason = "正在调整快慢机";
+            return false;
+        }
+
+        if (!pawn.health.capacities.CapableOf(PawnCapacityDefOf.Manipulation)) {
+            disabledReason = "无法操作武器";
+            return false;
+        }
+
+        disabledReason = string.Empty;
+        return true;
+    }
+
+    public int GetSwitchFireModeTicks() {
+        return SwitchFireModeTicks;
+    }
+
+    public void CompleteSwitchFireMode() {
         _currentMode = GetNextMode(_currentMode);
+    }
+
+    private bool TryStartSwitchFireModeJob(Pawn pawn, bool showFailureMessage = true) {
+        if (!CanSwitchFireMode(pawn, out var disabledReason)) {
+            if (showFailureMessage && !disabledReason.NullOrEmpty()) {
+                Messages.Message(disabledReason, pawn, MessageTypeDefOf.RejectInput, historical: false);
+            }
+
+            return false;
+        }
+
+        var switchFireModeJob = JobMaker.MakeJob(JobDefOf.CRTeam_SwitchFireMode, pawn, parent);
+        pawn.jobs.StartJob(switchFireModeJob, JobCondition.InterruptForced, resumeCurJobAfterwards: true,
+            tag: JobTag.Misc);
+        return true;
     }
 
     private FireMode GetNextMode(FireMode mode) {

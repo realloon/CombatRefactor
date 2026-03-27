@@ -1,3 +1,5 @@
+using Verse.AI;
+
 namespace CombatRefactor;
 
 public class CompMagazine : ThingComp, IEquippedGizmoProvider {
@@ -9,7 +11,11 @@ public class CompMagazine : ThingComp, IEquippedGizmoProvider {
 
     public int MagazineCapacity => ResolveMagazineCapacity();
 
+    public int ReloadTicks => Math.Max(1, Props.reloadTicks);
+
     public bool Empty => _remainingShots <= 0;
+
+    public bool NeedsReload => _remainingShots < MagazineCapacity;
 
     public override void Initialize(CompProperties properties) {
         base.Initialize(properties);
@@ -47,20 +53,67 @@ public class CompMagazine : ThingComp, IEquippedGizmoProvider {
 
         var reloadCommand = new Command_Action {
             defaultLabel = $"装填 ({RemainingShots}/{MagazineCapacity})",
-            defaultDesc = "将当前武器的弹匣装满。",
+            defaultDesc = $"装填当前武器的弹匣。\n耗时: {ReloadTicks.ToStringTicksToPeriod(shortForm: true)}",
             icon = TexCommand.Attack,
             activateSound = SoundDefOf.Click,
-            action = Reload,
+            action = () => StartReload(pawn),
         };
 
-        if (RemainingShots >= MagazineCapacity) {
-            reloadCommand.Disable("弹匣已满");
+        if (!CanReload(pawn, out var disabledReason)) {
+            reloadCommand.Disable(disabledReason);
         }
 
         yield return reloadCommand;
     }
 
-    private void Reload() {
+    private bool IsReloading(Pawn pawn) {
+        return pawn.CurJob?.def == JobDefOf.CRTeam_ReloadMagazine &&
+               pawn.CurJob.targetB.Thing == parent;
+    }
+
+    public bool IsHeldBy(Pawn pawn) {
+        return pawn.equipment?.Primary == parent && GetEquippingPawn() == pawn;
+    }
+
+    private bool CanReload(Pawn pawn, out string disabledReason) {
+        if (!IsHeldBy(pawn)) {
+            disabledReason = "未装备当前武器";
+            return false;
+        }
+
+        if (IsReloading(pawn)) {
+            disabledReason = "正在装填";
+            return false;
+        }
+
+        if (!NeedsReload) {
+            disabledReason = "弹匣已满";
+            return false;
+        }
+
+        if (!pawn.health.capacities.CapableOf(PawnCapacityDefOf.Manipulation)) {
+            disabledReason = "无法操作武器";
+            return false;
+        }
+
+        disabledReason = string.Empty;
+        return true;
+    }
+
+    private void StartReload(Pawn pawn) {
+        if (!CanReload(pawn, out var disabledReason)) {
+            if (!disabledReason.NullOrEmpty()) {
+                Messages.Message(disabledReason, pawn, MessageTypeDefOf.RejectInput, historical: false);
+            }
+
+            return;
+        }
+
+        var reloadJob = JobMaker.MakeJob(JobDefOf.CRTeam_ReloadMagazine, pawn, parent);
+        pawn.jobs.TryTakeOrderedJob(reloadJob, JobTag.Misc);
+    }
+
+    public void CompleteReload() {
         _remainingShots = MagazineCapacity;
     }
 

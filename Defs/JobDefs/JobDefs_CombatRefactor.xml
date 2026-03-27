@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+  <JobDef>
+    <defName>CRTeam_ReloadMagazine</defName>
+    <driverClass>CombatRefactor.JobDriver_ReloadMagazine</driverClass>
+    <reportString>正在装填武器。</reportString>
+    <suspendable>false</suspendable>
+    <allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+  </JobDef>
+</Defs>

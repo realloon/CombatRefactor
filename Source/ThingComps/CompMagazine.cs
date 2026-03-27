@@ -37,6 +37,9 @@ public class CompMagazine : ThingComp, IEquippedGizmoProvider {
         }
 
         _remainingShots--;
+        if (Empty) {
+            TryStartReloadAutomatically(pawn);
+        }
     }
 
     public override string CompInspectStringExtra() {
@@ -58,7 +61,7 @@ public class CompMagazine : ThingComp, IEquippedGizmoProvider {
             defaultDesc = $"装填当前武器的弹匣。\n耗时: {ReloadTicks.ToStringTicksToPeriod(shortForm: true)}",
             icon = TexCommand.Attack,
             activateSound = SoundDefOf.Click,
-            action = () => StartReload(pawn),
+            action = () => TryStartReload(pawn),
         };
 
         if (!CanReload(pawn, out var disabledReason)) {
@@ -102,17 +105,26 @@ public class CompMagazine : ThingComp, IEquippedGizmoProvider {
         return true;
     }
 
-    private void StartReload(Pawn pawn) {
+    private bool TryStartReload(Pawn pawn, bool showFailureMessage = true) {
         if (!CanReload(pawn, out var disabledReason)) {
-            if (!disabledReason.NullOrEmpty()) {
+            if (showFailureMessage && !disabledReason.NullOrEmpty()) {
                 Messages.Message(disabledReason, pawn, MessageTypeDefOf.RejectInput, historical: false);
             }
 
+            return false;
+        }
+
+        var reloadJob = JobMaker.MakeJob(JobDefOf.CRTeam_ReloadMagazine, pawn, parent);
+        return pawn.jobs.TryTakeOrderedJob(reloadJob, JobTag.Misc);
+    }
+
+    private void TryStartReloadAutomatically(Pawn pawn) {
+        if (!CanReload(pawn, out _)) {
             return;
         }
 
         var reloadJob = JobMaker.MakeJob(JobDefOf.CRTeam_ReloadMagazine, pawn, parent);
-        pawn.jobs.TryTakeOrderedJob(reloadJob, JobTag.Misc);
+        pawn.jobs.StartJob(reloadJob, JobCondition.InterruptForced, resumeCurJobAfterwards: true, tag: JobTag.Misc);
     }
 
     public void CompleteReload() {

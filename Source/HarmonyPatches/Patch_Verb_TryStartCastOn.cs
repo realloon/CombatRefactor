@@ -24,6 +24,12 @@ public static class Patch_Verb_TryStartCastOn {
             return true;
         }
 
+        if (castTarg.Thing is Pawn targetPawn &&
+            targetPawn.Faction != null &&
+            !targetPawn.Faction.HostileTo(caster.Faction)) {
+            return true;
+        }
+
         if (!launchProjectile.TryFindShootLineFromTo(caster.Position, castTarg, out var resultingLine)) {
             return true;
         }

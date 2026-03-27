@@ -1,4 +1,7 @@
-﻿using JetBrains.Annotations;
+﻿global using Verse;
+global using RimWorld;
+global using CombatRefactor.Type;
+using JetBrains.Annotations;
 using HarmonyLib;
 
 namespace CombatRefactor;

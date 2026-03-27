@@ -1,0 +1,20 @@
+using HarmonyLib;
+
+// ReSharper disable InconsistentNaming
+
+namespace CombatRefactor.HarmonyPatches;
+
+[HarmonyPatch(typeof(Stance_Warmup), nameof(Stance_Warmup.StanceDraw))]
+public static class Patch_Stance_Warmup_StanceDraw {
+    public static void Postfix(Stance_Warmup __instance) {
+        if (!Find.Selector.IsSelected(__instance.stanceTracker.pawn)) {
+            return;
+        }
+
+        if (__instance.verb is not Verb_LaunchProjectile launchProjectile) {
+            return;
+        }
+
+        ProjectileSpreadVisualizationUtility.DrawSpreadBounds(launchProjectile, __instance.focusTarg);
+    }
+}

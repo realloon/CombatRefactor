@@ -4,6 +4,7 @@
 Source/.idea
 Source/bin
 Source/obj
+*.user
 
 # Dist
 Assemblies

@@ -1,12 +1,12 @@
 using UnityEngine;
 
-namespace CombatRefactor;
+namespace CombatRefactor.Utility;
 
 public static class ProjectileAccuracyUtility {
     private const float MaximumSpreadAngleDegrees = 15f;
     private const float SpreadCurveExponent = 2f;
 
-    public static float GetWeaponAccuracy(Verb_LaunchProjectile verb) {
+    private static float GetWeaponAccuracy(Verb_LaunchProjectile verb) {
         var equipment = verb.EquipmentSource;
         if (equipment != null) {
             return Mathf.Max(
@@ -25,12 +25,12 @@ public static class ProjectileAccuracyUtility {
         );
     }
 
-    public static float GetShooterAccuracy(Thing caster) {
+    private static float GetShooterAccuracy(Thing caster) {
         if (caster is Pawn pawn) {
             return Mathf.Clamp01(pawn.GetStatValue(StatDefOf.ShootingAccuracyPawn));
         }
 
-        return Mathf.Clamp01(caster?.GetStatValue(StatDefOf.ShootingAccuracyTurret) ?? 1f);
+        return Mathf.Clamp01(caster.GetStatValue(StatDefOf.ShootingAccuracyTurret));
     }
 
     public static float GetFinalAccuracy(Verb_LaunchProjectile verb) {

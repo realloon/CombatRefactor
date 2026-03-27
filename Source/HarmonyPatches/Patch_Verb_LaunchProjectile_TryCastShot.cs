@@ -1,4 +1,6 @@
+using JetBrains.Annotations;
 using HarmonyLib;
+using CombatRefactor.Utility;
 
 // ReSharper disable InconsistentNaming
 
@@ -19,14 +21,15 @@ public static class Patch_Verb_LaunchProjectile_TryCastShot {
 
     private static readonly Action<Verb_LaunchProjectile, string> ThrowDebugText =
         AccessTools.MethodDelegate<Action<Verb_LaunchProjectile, string>>(
-            AccessTools.Method(typeof(Verb_LaunchProjectile), "ThrowDebugText", new[] { typeof(string) })
+            AccessTools.Method(typeof(Verb_LaunchProjectile), "ThrowDebugText", [typeof(string)])
         );
 
     private static readonly Action<Verb_LaunchProjectile, string, IntVec3> ThrowDebugTextAt =
         AccessTools.MethodDelegate<Action<Verb_LaunchProjectile, string, IntVec3>>(
-            AccessTools.Method(typeof(Verb_LaunchProjectile), "ThrowDebugText", new[] { typeof(string), typeof(IntVec3) })
+            AccessTools.Method(typeof(Verb_LaunchProjectile), "ThrowDebugText", [typeof(string), typeof(IntVec3)])
         );
 
+    [UsedImplicitly]
     public static bool Prefix(Verb_LaunchProjectile __instance, ref bool __result) {
         var currentTarget = __instance.CurrentTarget;
         var caster = __instance.caster;
@@ -74,7 +77,7 @@ public static class Patch_Verb_LaunchProjectile_TryCastShot {
                     continue;
                 }
 
-                projectile.extraDamages ??= new List<ExtraDamage>();
+                projectile.extraDamages ??= [];
                 projectile.extraDamages.AddRange(trait.extraDamages);
             }
         }
@@ -85,7 +88,8 @@ public static class Patch_Verb_LaunchProjectile_TryCastShot {
                 forcedMissRadius *= __instance.verbProps.GetForceMissFactorFor(equipmentSource, pawn);
             }
 
-            var adjustedForcedMissRadius = VerbUtility.CalculateAdjustedForcedMiss(forcedMissRadius, currentTarget.Cell - caster.Position);
+            var adjustedForcedMissRadius =
+                VerbUtility.CalculateAdjustedForcedMiss(forcedMissRadius, currentTarget.Cell - caster.Position);
             if (adjustedForcedMissRadius > 0.5f) {
                 var forcedMissTarget = GetForcedMissTarget(__instance, adjustedForcedMissRadius);
                 if (forcedMissTarget != currentTarget.Cell) {
@@ -101,7 +105,8 @@ public static class Patch_Verb_LaunchProjectile_TryCastShot {
                         projectileHitFlags &= ~ProjectileHitFlags.NonTargetPawns;
                     }
 
-                    projectile.Launch(manningPawn, drawPos, forcedMissTarget, currentTarget, projectileHitFlags, __instance.preventFriendlyFire, equipmentSource);
+                    projectile.Launch(manningPawn, drawPos, forcedMissTarget, currentTarget, projectileHitFlags,
+                        __instance.preventFriendlyFire, equipmentSource);
                     __result = true;
                     return false;
                 }
@@ -113,7 +118,8 @@ public static class Patch_Verb_LaunchProjectile_TryCastShot {
         var targetCoverDef = randomCoverToMissInto?.def;
         if (__instance.verbProps.canGoWild) {
             var finalAccuracy = ProjectileAccuracyUtility.GetFinalAccuracy(__instance);
-            var spreadDestination = ProjectileAccuracyUtility.GetSpreadDestination(resultingLine, caster.Map, finalAccuracy);
+            var spreadDestination =
+                ProjectileAccuracyUtility.GetSpreadDestination(resultingLine, caster.Map, finalAccuracy);
             if (spreadDestination != currentTarget.Cell) {
                 ThrowDebugText(__instance, "ToSpread" + (CanHitNonTargetPawnsNowRef(__instance) ? "\nchntp" : ""));
                 ThrowDebugTextAt(__instance, "Spread\nDest", spreadDestination);
@@ -123,13 +129,15 @@ public static class Patch_Verb_LaunchProjectile_TryCastShot {
                     projectileHitFlags |= ProjectileHitFlags.NonTargetPawns;
                 }
 
-                projectile.Launch(manningPawn, drawPos, spreadDestination, currentTarget, projectileHitFlags, __instance.preventFriendlyFire, equipmentSource, targetCoverDef);
+                projectile.Launch(manningPawn, drawPos, spreadDestination, currentTarget, projectileHitFlags,
+                    __instance.preventFriendlyFire, equipmentSource, targetCoverDef);
                 __result = true;
                 return false;
             }
         }
 
-        if (currentTarget.Thing != null && currentTarget.Thing.def.CanBenefitFromCover && randomCoverToMissInto != null && !Rand.Chance(shotReport.PassCoverChance)) {
+        if (currentTarget.Thing != null && currentTarget.Thing.def.CanBenefitFromCover &&
+            randomCoverToMissInto != null && !Rand.Chance(shotReport.PassCoverChance)) {
             ThrowDebugText(__instance, "ToCover" + (CanHitNonTargetPawnsNowRef(__instance) ? "\nchntp" : ""));
             ThrowDebugTextAt(__instance, "Cover\nDest", randomCoverToMissInto.Position);
 
@@ -138,7 +146,8 @@ public static class Patch_Verb_LaunchProjectile_TryCastShot {
                 projectileHitFlags |= ProjectileHitFlags.NonTargetPawns;
             }
 
-            projectile.Launch(manningPawn, drawPos, randomCoverToMissInto, currentTarget, projectileHitFlags, __instance.preventFriendlyFire, equipmentSource, targetCoverDef);
+            projectile.Launch(manningPawn, drawPos, randomCoverToMissInto, currentTarget, projectileHitFlags,
+                __instance.preventFriendlyFire, equipmentSource, targetCoverDef);
             __result = true;
             return false;
         }
@@ -154,11 +163,12 @@ public static class Patch_Verb_LaunchProjectile_TryCastShot {
 
         ThrowDebugText(__instance, "ToHit" + (CanHitNonTargetPawnsNowRef(__instance) ? "\nchntp" : ""));
         if (currentTarget.Thing != null) {
-            projectile.Launch(manningPawn, drawPos, currentTarget, currentTarget, directHitFlags, __instance.preventFriendlyFire, equipmentSource, targetCoverDef);
+            projectile.Launch(manningPawn, drawPos, currentTarget, currentTarget, directHitFlags,
+                __instance.preventFriendlyFire, equipmentSource, targetCoverDef);
             ThrowDebugTextAt(__instance, "Hit\nDest", currentTarget.Cell);
-        }
-        else {
-            projectile.Launch(manningPawn, drawPos, resultingLine.Dest, currentTarget, directHitFlags, __instance.preventFriendlyFire, equipmentSource, targetCoverDef);
+        } else {
+            projectile.Launch(manningPawn, drawPos, resultingLine.Dest, currentTarget, directHitFlags,
+                __instance.preventFriendlyFire, equipmentSource, targetCoverDef);
             ThrowDebugTextAt(__instance, "Hit\nDest", resultingLine.Dest);
         }
 

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace CombatRefactor;
+namespace CombatRefactor.Utility;
 
 public static class ProjectileSpreadVisualizationUtility {
     private const float DashLength = 0.7f;

@@ -12,7 +12,8 @@ Combat Refactor is a RimWorld mod that reimagines the game's combat experience.
 
 - C#: `Source/`
 - Build: `dotnet build Source/CombatRefactor.slnx`
-- Dependencies`Krafs.Rimworld.Ref`、`Lib.Harmony.Ref`
+- Dependencies`Krafs.Rimworld.Ref`, `Lib.Harmony.Ref`
+- Global using: `RimWorld`, `Verse`, `CombatRefactor.Type`;
 
 ## Contributing
 

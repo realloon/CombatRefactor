@@ -1,5 +1,3 @@
-using UnityEngine;
-
 namespace CombatRefactor;
 
 public class CompFireSelector : ThingComp, IEquippedGizmoProvider {
@@ -9,22 +7,20 @@ public class CompFireSelector : ThingComp, IEquippedGizmoProvider {
 
     public override void Initialize(CompProperties properties) {
         base.Initialize(properties);
-        _currentMode = Props.defaultMode;
+        _currentMode = GetDefaultMode();
     }
 
     public override void PostExposeData() {
         base.PostExposeData();
-        Scribe_Values.Look(ref _currentMode, "currentMode", Props.defaultMode);
+        Scribe_Values.Look(ref _currentMode, "currentMode", GetDefaultMode());
     }
 
     public int GetBurstShotCountFor(int originalBurstShotCount) {
-        var burstShotCount = ResolveBurstShotCount(originalBurstShotCount);
-
         return _currentMode switch {
             FireMode.Single => 1,
-            FireMode.Burst => burstShotCount,
-            FireMode.Auto => ResolveAutoBurstShotCount(burstShotCount),
-            _ => burstShotCount,
+            FireMode.Burst => originalBurstShotCount,
+            FireMode.Auto => ResolveAutoBurstShotCount(originalBurstShotCount),
+            _ => originalBurstShotCount,
         };
     }
 
@@ -63,29 +59,18 @@ public class CompFireSelector : ThingComp, IEquippedGizmoProvider {
         };
     }
 
-    private int ResolveBurstShotCount(int originalBurstShotCount) {
-        return Props.burstShotCountOverride > 0
-            ? Props.burstShotCountOverride
-            : originalBurstShotCount;
+    private FireMode GetDefaultMode() {
+        return HasBurstMode() ? FireMode.Burst : FireMode.Single;
     }
 
     private bool HasBurstMode() {
-        if (Props.burstShotCountOverride > 0) {
-            return Props.burstShotCountOverride > 1;
-        }
-
         return parent.def.Verbs != null && Enumerable.Any(parent.def.Verbs, verb => verb.burstShotCount > 1);
     }
 
     private int ResolveAutoBurstShotCount(int burstShotCount) {
-        var multiplier = Mathf.Max(1f, Props.autoBurstMultiplier);
-        var autoBurstShotCount = Mathf.Max(burstShotCount, Mathf.CeilToInt(burstShotCount * multiplier));
-
-        if (Props.autoBurstShotCountCap > 0) {
-            autoBurstShotCount = Mathf.Min(autoBurstShotCount, Props.autoBurstShotCountCap);
-        }
-
-        return autoBurstShotCount;
+        return Props.autoBurstShotCount > 0
+            ? Props.autoBurstShotCount
+            : burstShotCount * 2;
     }
 
     private Pawn? GetEquippingPawn() {

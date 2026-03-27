@@ -1,12 +1,12 @@
+using JetBrains.Annotations;
+
 // ReSharper disable InconsistentNaming
 
 namespace CombatRefactor;
 
 public class CompProperties_FireSelector : CompProperties {
-    public FireMode defaultMode = FireMode.Burst;
-    public int burstShotCountOverride;
-    public float autoBurstMultiplier = 2f;
-    public int autoBurstShotCountCap;
+    [UsedImplicitly]
+    public readonly int autoBurstShotCount;
 
     public CompProperties_FireSelector() => compClass = typeof(CompFireSelector);
 }

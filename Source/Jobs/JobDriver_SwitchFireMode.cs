@@ -13,18 +13,22 @@ public class JobDriver_SwitchFireMode : JobDriver {
 
     private CompFireSelector? FireSelector => Weapon?.TryGetComp<CompFireSelector>();
 
+    private FireMode TargetMode => (FireMode)job.count;
+
     public override bool TryMakePreToilReservations(bool errorOnFailed) => true;
 
     protected override IEnumerable<Toil> MakeNewToils() {
         this.FailOn(() => FireSelector == null);
         this.FailOn(() => Weapon == null);
         this.FailOn(() => !FireSelector!.IsHeldBy(pawn));
+        this.FailOn(() => !FireSelector!.SupportsMode(TargetMode));
+        this.FailOn(() => FireSelector!.CurrentMode == TargetMode);
         this.FailOn(() => !pawn.health.capacities.CapableOf(PawnCapacityDefOf.Manipulation));
 
         var wait = Toils_General.Wait(FireSelector!.GetSwitchFireModeTicks());
         wait.WithProgressBarToilDelay(ActorInd);
         yield return wait;
 
-        yield return Toils_General.Do(() => FireSelector?.CompleteSwitchFireMode());
+        yield return Toils_General.Do(() => FireSelector?.CompleteSwitchFireMode(TargetMode));
     }
 }

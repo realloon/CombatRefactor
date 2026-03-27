@@ -43,10 +43,10 @@ public class CompFireSelector : ThingComp, IEquippedGizmoProvider {
             defaultDesc = "Switch shot mode",
             icon = TexCommand.Attack,
             activateSound = SoundDefOf.Click,
-            action = () => TryStartSwitchFireModeJob(pawn),
+            action = () => ShowSwitchFireModeMenu(pawn),
         };
 
-        if (!CanSwitchFireMode(pawn, out var disabledReason)) {
+        if (!CanOpenSwitchFireModeMenu(pawn, out var disabledReason)) {
             switchFireModeCommand.Disable(disabledReason);
         }
 
@@ -62,7 +62,7 @@ public class CompFireSelector : ThingComp, IEquippedGizmoProvider {
                pawn.CurJob.targetB.Thing == parent;
     }
 
-    private bool CanSwitchFireMode(Pawn pawn, out string disabledReason) {
+    private bool CanOpenSwitchFireModeMenu(Pawn pawn, out string disabledReason) {
         if (!IsHeldBy(pawn)) {
             disabledReason = "未装备当前武器";
             return false;
@@ -82,16 +82,18 @@ public class CompFireSelector : ThingComp, IEquippedGizmoProvider {
         return true;
     }
 
+    public FireMode CurrentMode => _currentMode;
+
     public int GetSwitchFireModeTicks() {
         return SwitchFireModeTicks;
     }
 
-    public void CompleteSwitchFireMode() {
-        _currentMode = GetNextMode(_currentMode);
+    public void CompleteSwitchFireMode(FireMode targetMode) {
+        _currentMode = targetMode;
     }
 
-    private bool TryStartSwitchFireModeJob(Pawn pawn, bool showFailureMessage = true) {
-        if (!CanSwitchFireMode(pawn, out var disabledReason)) {
+    private bool TryStartSwitchFireModeJob(Pawn pawn, FireMode targetMode, bool showFailureMessage = true) {
+        if (!CanSwitchToFireMode(pawn, targetMode, out var disabledReason)) {
             if (showFailureMessage && !disabledReason.NullOrEmpty()) {
                 Messages.Message(disabledReason, pawn, MessageTypeDefOf.RejectInput, historical: false);
             }
@@ -100,29 +102,74 @@ public class CompFireSelector : ThingComp, IEquippedGizmoProvider {
         }
 
         var switchFireModeJob = JobMaker.MakeJob(JobDefOf.CRTeam_SwitchFireMode, pawn, parent);
+        switchFireModeJob.count = (int)targetMode;
         pawn.jobs.StartJob(switchFireModeJob, JobCondition.InterruptForced, resumeCurJobAfterwards: true,
             tag: JobTag.Misc);
         return true;
     }
 
-    private FireMode GetNextMode(FireMode mode) {
-        if (!HasBurstMode()) {
-            return mode == FireMode.Single ? FireMode.Auto : FireMode.Single;
+    private bool CanSwitchToFireMode(Pawn pawn, FireMode targetMode, out string disabledReason) {
+        if (!CanOpenSwitchFireModeMenu(pawn, out disabledReason)) {
+            return false;
         }
 
-        return mode switch {
-            FireMode.Single => FireMode.Burst,
-            FireMode.Burst => FireMode.Auto,
-            _ => FireMode.Single,
-        };
+        if (!SupportsMode(targetMode)) {
+            disabledReason = "当前武器不支持该模式";
+            return false;
+        }
+
+        if (_currentMode == targetMode) {
+            disabledReason = "已经是该模式";
+            return false;
+        }
+
+        disabledReason = string.Empty;
+        return true;
     }
 
     private FireMode GetDefaultMode() {
         return HasBurstMode() ? FireMode.Burst : FireMode.Single;
     }
 
+    private void ShowSwitchFireModeMenu(Pawn pawn) {
+        if (!CanOpenSwitchFireModeMenu(pawn, out var disabledReason)) {
+            if (!disabledReason.NullOrEmpty()) {
+                Messages.Message(disabledReason, pawn, MessageTypeDefOf.RejectInput, historical: false);
+            }
+
+            return;
+        }
+
+        var options = GetSupportedModes()
+            .Select(mode => mode == _currentMode
+                ? new FloatMenuOption($"{GetModeLabel(mode)} (当前)", null)
+                : new FloatMenuOption(GetModeLabel(mode), () => TryStartSwitchFireModeJob(pawn, mode)))
+            .ToList();
+
+        Find.WindowStack.Add(new FloatMenu(options));
+    }
+
+    private IEnumerable<FireMode> GetSupportedModes() {
+        yield return FireMode.Single;
+
+        if (HasBurstMode()) {
+            yield return FireMode.Burst;
+        }
+
+        yield return FireMode.Auto;
+    }
+
     private bool HasBurstMode() {
         return parent.def.Verbs != null && Enumerable.Any(parent.def.Verbs, verb => verb.burstShotCount > 1);
+    }
+
+    public bool SupportsMode(FireMode mode) {
+        return mode switch {
+            FireMode.Single => true,
+            FireMode.Burst => HasBurstMode(),
+            FireMode.Auto => true,
+            _ => false,
+        };
     }
 
     private int ResolveAutoBurstShotCount(int burstShotCount) {

@@ -3,7 +3,7 @@ using UnityEngine;
 namespace CombatRefactor.Utility;
 
 public static class ProjectileAccuracyUtility {
-    private const float MaximumSpreadAngleDegrees = 15f;
+    private const float MaximumSpreadAngleDegrees = 45f;
     private const float SpreadCurveExponent = 2f;
 
     private static float GetWeaponAccuracy(Verb_LaunchProjectile verb) {

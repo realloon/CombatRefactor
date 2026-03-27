@@ -66,20 +66,26 @@ public static class Patch_Verb_LaunchProjectile_TryCastShot {
         }
 
         var drawPos = caster.DrawPos;
-        var projectile = (Projectile)GenSpawn.Spawn(projectileDef, resultingLine.Source, caster.Map);
-        if (equipmentSource != null && equipmentSource.TryGetComp<CompUniqueWeapon>(out var comp)) {
-            foreach (var trait in comp.TraitsListForReading) {
-                if (trait.damageDefOverride != null) {
-                    projectile.damageDefOverride = trait.damageDefOverride;
-                }
+        var shootSource = resultingLine.Source;
 
-                if (trait.extraDamages.NullOrEmpty()) {
-                    continue;
-                }
+        Projectile SpawnPreparedProjectile() {
+            var projectile = (Projectile)GenSpawn.Spawn(projectileDef, shootSource, caster.Map);
+            if (equipmentSource != null && equipmentSource.TryGetComp<CompUniqueWeapon>(out var comp)) {
+                foreach (var trait in comp.TraitsListForReading) {
+                    if (trait.damageDefOverride != null) {
+                        projectile.damageDefOverride = trait.damageDefOverride;
+                    }
 
-                projectile.extraDamages ??= [];
-                projectile.extraDamages.AddRange(trait.extraDamages);
+                    if (trait.extraDamages.NullOrEmpty()) {
+                        continue;
+                    }
+
+                    projectile.extraDamages ??= [];
+                    projectile.extraDamages.AddRange(trait.extraDamages);
+                }
             }
+
+            return projectile;
         }
 
         if (__instance.verbProps.ForcedMissRadius > 0.5f) {
@@ -105,6 +111,7 @@ public static class Patch_Verb_LaunchProjectile_TryCastShot {
                         projectileHitFlags &= ~ProjectileHitFlags.NonTargetPawns;
                     }
 
+                    var projectile = SpawnPreparedProjectile();
                     projectile.Launch(manningPawn, drawPos, forcedMissTarget, currentTarget, projectileHitFlags,
                         __instance.preventFriendlyFire, equipmentSource);
                     __result = true;
@@ -113,9 +120,7 @@ public static class Patch_Verb_LaunchProjectile_TryCastShot {
             }
         }
 
-        var shotReport = ShotReport.HitReportFor(caster, __instance, currentTarget);
-        var randomCoverToMissInto = shotReport.GetRandomCoverToMissInto();
-        var targetCoverDef = randomCoverToMissInto?.def;
+        ThingDef? targetCoverDef = null;
         if (__instance.verbProps.canGoWild) {
             var finalAccuracy = ProjectileAccuracyUtility.GetFinalAccuracy(__instance);
             var spreadDestination =
@@ -129,27 +134,12 @@ public static class Patch_Verb_LaunchProjectile_TryCastShot {
                     projectileHitFlags |= ProjectileHitFlags.NonTargetPawns;
                 }
 
+                var projectile = SpawnPreparedProjectile();
                 projectile.Launch(manningPawn, drawPos, spreadDestination, currentTarget, projectileHitFlags,
                     __instance.preventFriendlyFire, equipmentSource, targetCoverDef);
                 __result = true;
                 return false;
             }
-        }
-
-        if (currentTarget.Thing != null && currentTarget.Thing.def.CanBenefitFromCover &&
-            randomCoverToMissInto != null && !Rand.Chance(shotReport.PassCoverChance)) {
-            ThrowDebugText(__instance, "ToCover" + (CanHitNonTargetPawnsNowRef(__instance) ? "\nchntp" : ""));
-            ThrowDebugTextAt(__instance, "Cover\nDest", randomCoverToMissInto.Position);
-
-            var projectileHitFlags = ProjectileHitFlags.NonTargetWorld;
-            if (CanHitNonTargetPawnsNowRef(__instance)) {
-                projectileHitFlags |= ProjectileHitFlags.NonTargetPawns;
-            }
-
-            projectile.Launch(manningPawn, drawPos, randomCoverToMissInto, currentTarget, projectileHitFlags,
-                __instance.preventFriendlyFire, equipmentSource, targetCoverDef);
-            __result = true;
-            return false;
         }
 
         var directHitFlags = ProjectileHitFlags.IntendedTarget;
@@ -163,10 +153,12 @@ public static class Patch_Verb_LaunchProjectile_TryCastShot {
 
         ThrowDebugText(__instance, "ToHit" + (CanHitNonTargetPawnsNowRef(__instance) ? "\nchntp" : ""));
         if (currentTarget.Thing != null) {
+            var projectile = SpawnPreparedProjectile();
             projectile.Launch(manningPawn, drawPos, currentTarget, currentTarget, directHitFlags,
                 __instance.preventFriendlyFire, equipmentSource, targetCoverDef);
             ThrowDebugTextAt(__instance, "Hit\nDest", currentTarget.Cell);
         } else {
+            var projectile = SpawnPreparedProjectile();
             projectile.Launch(manningPawn, drawPos, resultingLine.Dest, currentTarget, directHitFlags,
                 __instance.preventFriendlyFire, equipmentSource, targetCoverDef);
             ThrowDebugTextAt(__instance, "Hit\nDest", resultingLine.Dest);

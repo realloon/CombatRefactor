@@ -1,6 +1,7 @@
 ﻿global using Verse;
 global using RimWorld;
 global using CombatRefactor.Type;
+using CombatRefactor.Utility;
 using JetBrains.Annotations;
 using HarmonyLib;
 
@@ -13,6 +14,7 @@ public static class CombatRefactor {
         var harmony = new Harmony("CRTeam.CombatRefactor");
         harmony.PatchAll();
 
+        ProjectileCoverUtility.InjectProjectileStageComp();
         InjectTestFireSelector();
     }
 

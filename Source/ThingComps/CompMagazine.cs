@@ -3,6 +3,8 @@ using Verse.AI;
 namespace CombatRefactor;
 
 public class CompMagazine : ThingComp, IEquippedGizmoProvider {
+    private const int DefaultMagazineCapacityBurstMultiplier = 10;
+
     private int _remainingShots;
 
     private CompProperties_Magazine Props => (CompProperties_Magazine)props;
@@ -130,7 +132,7 @@ public class CompMagazine : ThingComp, IEquippedGizmoProvider {
                 .Max();
         }
 
-        return Math.Max(1, burstShotCount * Props.burstShotCountCapacityMultiplier);
+        return Math.Max(1, burstShotCount * DefaultMagazineCapacityBurstMultiplier);
     }
 
     private Pawn? GetEquippingPawn() {

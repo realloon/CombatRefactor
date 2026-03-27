@@ -93,8 +93,9 @@ public class CompFireSelector : ThingComp, IEquippedGizmoProvider {
     }
 
     private static bool CanShowFor(Pawn pawn) {
-        return pawn.IsColonistPlayerControlled || pawn.IsColonyMechPlayerControlled ||
-               pawn.IsColonySubhumanPlayerControlled;
+        return pawn.drafter is { Drafted: true } &&
+               (pawn.IsColonistPlayerControlled || pawn.IsColonyMechPlayerControlled ||
+                pawn.IsColonySubhumanPlayerControlled);
     }
 
     private static string GetModeLabel(FireMode mode) => mode switch {

@@ -138,7 +138,8 @@ public class CompMagazine : ThingComp, IEquippedGizmoProvider {
     }
 
     private static bool CanShowFor(Pawn pawn) {
-        return pawn.IsColonistPlayerControlled || pawn.IsColonyMechPlayerControlled ||
-               pawn.IsColonySubhumanPlayerControlled;
+        return pawn.drafter is { Drafted: true } &&
+               (pawn.IsColonistPlayerControlled || pawn.IsColonyMechPlayerControlled ||
+                pawn.IsColonySubhumanPlayerControlled);
     }
 }

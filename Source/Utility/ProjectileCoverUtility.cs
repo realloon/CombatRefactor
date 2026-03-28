@@ -33,9 +33,7 @@ public static class ProjectileCoverUtility {
 
     public static void InjectProjectileStageComp() {
         foreach (var def in DefDatabase<ThingDef>.AllDefsListForReading) {
-            if (def.projectile == null) {
-                continue;
-            }
+            if (def.projectile == null) continue;
 
             def.comps ??= [];
             if (def.comps.OfType<CompProperties_ProjectileStage>().Any()) {
@@ -54,25 +52,19 @@ public static class ProjectileCoverUtility {
     }
 
     public static void OverrideFlightSource(Projectile projectile, IntVec3 sourceCell) {
-        if (!sourceCell.IsValid) {
-            return;
-        }
+        if (!sourceCell.IsValid) return;
 
         projectile.TryGetComp<CompProjectileStage>()?.SetPendingFlightSource(sourceCell);
     }
 
     public static void OverrideFlightDestination(Projectile projectile, IntVec3 destinationCell) {
-        if (!destinationCell.IsValid) {
-            return;
-        }
+        if (!destinationCell.IsValid) return;
 
         projectile.TryGetComp<CompProjectileStage>()?.SetPendingFlightDestination(destinationCell);
     }
 
     public static void OverrideProtectedLeanSupportCell(Projectile projectile, IntVec3 cell) {
-        if (!cell.IsValid) {
-            return;
-        }
+        if (!cell.IsValid) return;
 
         projectile.TryGetComp<CompProjectileStage>()?.SetPendingProtectedLeanSupportCell(cell);
     }
@@ -85,9 +77,7 @@ public static class ProjectileCoverUtility {
         LocalTargetInfo intendedTarget) {
         using var _ = PerformanceProfiler.Measure("Cover.ResolveProtectedLeanSupportCell");
 
-        if (flightSource == shooterCell) {
-            return IntVec3.Invalid;
-        }
+        if (flightSource == shooterCell) return IntVec3.Invalid;
 
         var targetCell = intendedTarget.Thing != null
             ? intendedTarget.Thing.OccupiedRect().ClosestCellTo(shooterCell)
@@ -109,60 +99,60 @@ public static class ProjectileCoverUtility {
         var southWestBlocked = !(shooterCell + GenAdj.AdjacentCells[7]).CanBeSeenOver(map);
 
         if (flightSource == shooterCell + IntVec3.East) {
-            if (!eastBlocked) {
-                if (northBlocked && !northEastBlocked && isEastSide) {
-                    return shooterCell + IntVec3.North;
-                }
+            if (eastBlocked) return IntVec3.Invalid;
 
-                if (southBlocked && !southEastBlocked && isWestSide) {
-                    return shooterCell + IntVec3.South;
-                }
+            if (northBlocked && !northEastBlocked && isEastSide) {
+                return shooterCell + IntVec3.North;
+            }
 
-                if (isNorthSide && flightSource.GetCover(map) != null) {
-                    return flightSource;
-                }
+            if (southBlocked && !southEastBlocked && isWestSide) {
+                return shooterCell + IntVec3.South;
+            }
+
+            if (isNorthSide && flightSource.GetCover(map) != null) {
+                return flightSource;
             }
         } else if (flightSource == shooterCell + IntVec3.West) {
-            if (!westBlocked) {
-                if (northBlocked && !northWestBlocked && isEastSide) {
-                    return shooterCell + IntVec3.North;
-                }
+            if (westBlocked) return IntVec3.Invalid;
 
-                if (southBlocked && !southWestBlocked && isWestSide) {
-                    return shooterCell + IntVec3.South;
-                }
+            if (northBlocked && !northWestBlocked && isEastSide) {
+                return shooterCell + IntVec3.North;
+            }
 
-                if (isSouthSide && flightSource.GetCover(map) != null) {
-                    return flightSource;
-                }
+            if (southBlocked && !southWestBlocked && isWestSide) {
+                return shooterCell + IntVec3.South;
+            }
+
+            if (isSouthSide && flightSource.GetCover(map) != null) {
+                return flightSource;
             }
         } else if (flightSource == shooterCell + IntVec3.South) {
-            if (!southBlocked) {
-                if (westBlocked && !southWestBlocked && isSouthSide) {
-                    return shooterCell + IntVec3.West;
-                }
+            if (southBlocked) return IntVec3.Invalid;
 
-                if (eastBlocked && !southEastBlocked && isNorthSide) {
-                    return shooterCell + IntVec3.East;
-                }
+            if (westBlocked && !southWestBlocked && isSouthSide) {
+                return shooterCell + IntVec3.West;
+            }
 
-                if (isWestSide && flightSource.GetCover(map) != null) {
-                    return flightSource;
-                }
+            if (eastBlocked && !southEastBlocked && isNorthSide) {
+                return shooterCell + IntVec3.East;
+            }
+
+            if (isWestSide && flightSource.GetCover(map) != null) {
+                return flightSource;
             }
         } else if (flightSource == shooterCell + IntVec3.North) {
-            if (!northBlocked) {
-                if (westBlocked && !northWestBlocked && isSouthSide) {
-                    return shooterCell + IntVec3.West;
-                }
+            if (northBlocked) return IntVec3.Invalid;
 
-                if (eastBlocked && !northEastBlocked && isNorthSide) {
-                    return shooterCell + IntVec3.East;
-                }
+            if (westBlocked && !northWestBlocked && isSouthSide) {
+                return shooterCell + IntVec3.West;
+            }
 
-                if (isEastSide && flightSource.GetCover(map) != null) {
-                    return flightSource;
-                }
+            if (eastBlocked && !northEastBlocked && isNorthSide) {
+                return shooterCell + IntVec3.East;
+            }
+
+            if (isEastSide && flightSource.GetCover(map) != null) {
+                return flightSource;
             }
         }
 
@@ -186,18 +176,8 @@ public static class ProjectileCoverUtility {
             return CellHasFriendlyPawnBlocker(launcher, map, destinationCell, intendedTarget);
         }
 
-        var lastExactPos = sourceCell.ToVector3Shifted();
-        var newExactPos = destinationCell.ToVector3Shifted();
-        var cursor = lastExactPos;
-        var segment = newExactPos - lastExactPos;
-        var step = segment.normalized * 0.2f;
-        var maxSteps = (int)(segment.MagnitudeHorizontal() / 0.2f);
-        var checkedCells = new HashSet<IntVec3>();
-
-        for (var stepIndex = 0; stepIndex <= maxSteps; stepIndex++) {
-            cursor += step;
-            var cell = cursor.ToIntVec3();
-            if (!checkedCells.Add(cell)) {
+        foreach (var cell in GenSight.PointsOnLineOfSight(sourceCell, destinationCell)) {
+            if (cell == sourceCell) {
                 continue;
             }
 
@@ -241,26 +221,32 @@ public static class ProjectileCoverUtility {
             return TryInterceptCoverAtCell(projectile, newCell);
         }
 
-        var cursor = lastExactPos;
-        var segment = newExactPos - lastExactPos;
-        var step = segment.normalized * 0.2f;
-        var maxSteps = (int)(segment.MagnitudeHorizontal() / 0.2f);
-        var checkedCells = new HashSet<IntVec3>();
+        var checkedCells = SimplePool<HashSet<IntVec3>>.Get();
+        checkedCells.Clear();
+        try {
+            var cursor = lastExactPos;
+            var segment = newExactPos - lastExactPos;
+            var step = segment.normalized * 0.2f;
+            var maxSteps = (int)(segment.MagnitudeHorizontal() / 0.2f);
 
-        for (var stepIndex = 0; stepIndex <= maxSteps; stepIndex++) {
-            cursor += step;
-            var cell = cursor.ToIntVec3();
-            if (!checkedCells.Add(cell)) {
-                continue;
-            }
+            for (var stepIndex = 0; stepIndex <= maxSteps; stepIndex++) {
+                cursor += step;
+                var cell = cursor.ToIntVec3();
+                if (!checkedCells.Add(cell)) {
+                    continue;
+                }
 
-            if (TryInterceptCoverAtCell(projectile, cell)) {
-                return true;
-            }
+                if (TryInterceptCoverAtCell(projectile, cell)) {
+                    return true;
+                }
 
-            if (cell == newCell) {
-                return false;
+                if (cell == newCell) {
+                    return false;
+                }
             }
+        } finally {
+            checkedCells.Clear();
+            SimplePool<HashSet<IntVec3>>.Return(checkedCells);
         }
 
         return false;
@@ -364,7 +350,7 @@ public static class ProjectileCoverUtility {
 
     private static void ApplyPendingFlightDestination(Projectile projectile) {
         var comp = projectile.TryGetComp<CompProjectileStage>();
-        if (comp == null || !comp.HasPendingFlightDestination) {
+        if (comp is not { HasPendingFlightDestination: true }) {
             return;
         }
 
@@ -376,7 +362,7 @@ public static class ProjectileCoverUtility {
 
     private static void ApplyPendingProtectedLeanSupportCell(Projectile projectile) {
         var comp = projectile.TryGetComp<CompProjectileStage>();
-        if (comp == null || !comp.HasPendingProtectedLeanSupportCell) {
+        if (comp is not { HasPendingProtectedLeanSupportCell: true }) {
             return;
         }
 
@@ -439,12 +425,11 @@ public static class ProjectileCoverUtility {
             return 0f;
         }
 
-        if (thing is Pawn pawn) {
-            return GetPawnInterceptStrength(projectile, pawn);
-        }
-
-        if (thing is Building_Door { Open: not false }) {
-            return 0f;
+        switch (thing) {
+            case Pawn pawn:
+                return GetPawnInterceptStrength(projectile, pawn);
+            case Building_Door { Open: not false }:
+                return 0f;
         }
 
         if (thing.def.Fillage == FillCategory.Full) {
@@ -452,11 +437,8 @@ public static class ProjectileCoverUtility {
         }
 
         var blockChance = thing.BaseBlockChance();
-        if (blockChance <= 0.2f) {
-            return 0f;
-        }
 
-        return Mathf.Clamp01(blockChance);
+        return blockChance <= 0.2f ? 0f : Mathf.Clamp01(blockChance);
     }
 
     private static bool IsProtectedLeanSupportThing(Projectile projectile, IntVec3 cell, Thing thing) {
@@ -472,9 +454,7 @@ public static class ProjectileCoverUtility {
 
     private static bool CellHasFriendlyPawnBlocker(Thing launcher, Map map, IntVec3 cell,
         LocalTargetInfo intendedTarget) {
-        if (!cell.InBounds(map)) {
-            return false;
-        }
+        if (!cell.InBounds(map)) return false;
 
         var thingList = cell.GetThingList(map);
         foreach (var t in thingList) {
@@ -509,9 +489,7 @@ public static class ProjectileCoverUtility {
             interceptStrength *= Find.Storyteller.difficulty.friendlyFireChanceFactor;
         }
 
-        if (interceptStrength <= 0f) {
-            return 0f;
-        }
+        if (interceptStrength <= 0f) return 0f;
 
         if (projectile.Launcher != null &&
             pawn.Faction != null &&

@@ -25,7 +25,7 @@ public class JobDriver_SwitchFireMode : JobDriver {
         this.FailOn(() => FireSelector!.CurrentMode == TargetMode);
         this.FailOn(() => !pawn.health.capacities.CapableOf(PawnCapacityDefOf.Manipulation));
 
-        var wait = Toils_General.Wait(FireSelector!.GetSwitchFireModeTicks());
+        var wait = Toils_General.Wait(CompFireSelector.SwitchFireModeTicks);
         wait.WithProgressBarToilDelay(ActorInd);
         yield return wait;
 

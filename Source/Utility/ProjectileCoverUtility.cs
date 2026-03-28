@@ -83,6 +83,8 @@ public static class ProjectileCoverUtility {
 
     public static IntVec3 ResolveProtectedLeanSupportCell(Map map, IntVec3 shooterCell, IntVec3 flightSource,
         LocalTargetInfo intendedTarget) {
+        using var _ = PerformanceProfiler.Measure("Cover.ResolveProtectedLeanSupportCell");
+
         if (flightSource == shooterCell) {
             return IntVec3.Invalid;
         }
@@ -169,6 +171,8 @@ public static class ProjectileCoverUtility {
 
     public static bool HasFriendlyPawnBlocker(Thing launcher, Map map, IntVec3 sourceCell, LocalTargetInfo usedTarget,
         LocalTargetInfo intendedTarget) {
+        using var _ = PerformanceProfiler.Measure("Cover.HasFriendlyPawnBlocker");
+
         if (launcher.Faction == null || !sourceCell.InBounds(map) || !usedTarget.IsValid) {
             return false;
         }
@@ -210,6 +214,8 @@ public static class ProjectileCoverUtility {
     }
 
     public static bool TryInterceptCoverBetween(Projectile projectile, Vector3 lastExactPos, Vector3 newExactPos) {
+        using var _ = PerformanceProfiler.Measure("Cover.TryInterceptCoverBetween");
+
         if (lastExactPos == newExactPos) {
             return false;
         }
@@ -261,6 +267,8 @@ public static class ProjectileCoverUtility {
     }
 
     public static bool TryHandleLeanTargetImpact(Projectile projectile) {
+        using var _ = PerformanceProfiler.Measure("Cover.TryHandleLeanTargetImpact");
+
         var comp = projectile.TryGetComp<CompProjectileStage>();
         if (comp is not { UsesTargetLeanExposure: true }) {
             return false;
@@ -285,6 +293,8 @@ public static class ProjectileCoverUtility {
     }
 
     private static bool TryInterceptCoverAtCell(Projectile projectile, IntVec3 cell) {
+        using var _ = PerformanceProfiler.Measure("Cover.TryInterceptCoverAtCell");
+
         if (projectile.Map == null || GetTerminalFlightCell(projectile) == cell) {
             return false;
         }

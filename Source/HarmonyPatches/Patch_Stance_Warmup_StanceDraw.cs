@@ -10,6 +10,8 @@ namespace CombatRefactor.HarmonyPatches;
 public static class Patch_Stance_Warmup_StanceDraw {
     [UsedImplicitly]
     public static void Postfix(Stance_Warmup __instance) {
+        using var _ = PerformanceProfiler.Measure("Patch.Stance_Warmup.StanceDraw");
+
         if (!Find.Selector.IsSelected(__instance.stanceTracker.pawn)) {
             return;
         }

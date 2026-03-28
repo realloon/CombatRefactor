@@ -61,7 +61,7 @@ public class CompMagazine : ThingComp, IEquippedGizmoProvider {
             defaultDesc = $"装填当前武器的弹匣。\n耗时: {ReloadTicks.ToStringTicksToPeriod(shortForm: true)}",
             icon = TexCommand.Attack,
             activateSound = SoundDefOf.Click,
-            action = () => TryStartReload(pawn),
+            action = () => TryStartReload(pawn)
         };
 
         if (!CanReload(pawn, out var disabledReason)) {

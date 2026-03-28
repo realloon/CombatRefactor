@@ -3,8 +3,7 @@ using Verse.AI;
 namespace CombatRefactor;
 
 public class CompFireSelector : ThingComp, IEquippedGizmoProvider {
-    private const int SwitchFireModeTicks = 15;
-
+    public const int SwitchFireModeTicks = 15;
     private FireMode _currentMode;
 
     private CompProperties_FireSelector Props => (CompProperties_FireSelector)props;
@@ -24,7 +23,7 @@ public class CompFireSelector : ThingComp, IEquippedGizmoProvider {
             FireMode.Single => 1,
             FireMode.Burst => originalBurstShotCount,
             FireMode.Auto => ResolveAutoBurstShotCount(originalBurstShotCount),
-            _ => originalBurstShotCount,
+            _ => originalBurstShotCount
         };
     }
 
@@ -43,7 +42,7 @@ public class CompFireSelector : ThingComp, IEquippedGizmoProvider {
             defaultDesc = "Switch shot mode",
             icon = TexCommand.Attack,
             activateSound = SoundDefOf.Click,
-            action = () => ShowSwitchFireModeMenu(pawn),
+            action = () => ShowSwitchFireModeMenu(pawn)
         };
 
         if (!CanOpenSwitchFireModeMenu(pawn, out var disabledReason)) {
@@ -84,9 +83,6 @@ public class CompFireSelector : ThingComp, IEquippedGizmoProvider {
 
     public FireMode CurrentMode => _currentMode;
 
-    public int GetSwitchFireModeTicks() {
-        return SwitchFireModeTicks;
-    }
 
     public void CompleteSwitchFireMode(FireMode targetMode) {
         _currentMode = targetMode;
@@ -168,7 +164,7 @@ public class CompFireSelector : ThingComp, IEquippedGizmoProvider {
             FireMode.Single => true,
             FireMode.Burst => HasBurstMode(),
             FireMode.Auto => true,
-            _ => false,
+            _ => false
         };
     }
 
@@ -192,6 +188,6 @@ public class CompFireSelector : ThingComp, IEquippedGizmoProvider {
         FireMode.Single => "Single",
         FireMode.Burst => "Burst",
         FireMode.Auto => "Auto",
-        _ => mode.ToString(),
+        _ => mode.ToString()
     };
 }

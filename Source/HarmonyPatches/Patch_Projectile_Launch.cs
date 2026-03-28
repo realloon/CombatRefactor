@@ -15,7 +15,7 @@ namespace CombatRefactor.HarmonyPatches;
     typeof(ProjectileHitFlags),
     typeof(bool),
     typeof(Thing),
-    typeof(ThingDef),
+    typeof(ThingDef)
 })]
 public static class Patch_Projectile_Launch {
     [UsedImplicitly]

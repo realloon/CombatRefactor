@@ -1,0 +1,202 @@
+using System.Diagnostics;
+using System.Text;
+using HarmonyLib;
+
+namespace CombatRefactor.Utility;
+
+public static class PerformanceProfiler {
+    #if DEBUG
+    private const int ReportIntervalTicks = 900;
+    private const int MaxEntriesPerReport = 8;
+    private const double MinimumTotalMillisecondsToReport = 0.05d;
+    private static readonly Dictionary<string, Measurement> Measurements = [];
+    private static readonly StringBuilder ReportBuilder = new();
+
+    private static readonly LogMessageQueue MessageQueue =
+        AccessTools.StaticFieldRefAccess<LogMessageQueue>(typeof(Log), "messageQueue");
+
+    private static readonly object LogLock =
+        AccessTools.StaticFieldRefAccess<object>(typeof(Log), "logLock");
+
+    private static readonly Action PostMessage =
+        AccessTools.MethodDelegate<Action>(AccessTools.Method(typeof(Log), "PostMessage"));
+
+    [ThreadStatic] private static ScopeState? _currentScope;
+    private static int _nextReportTick = ReportIntervalTicks;
+
+    public static Scope Measure(string name) {
+        var scopeState = new ScopeState(name, Stopwatch.GetTimestamp(), _currentScope);
+        _currentScope = scopeState;
+        return new Scope(scopeState);
+    }
+
+    private static void RecordMeasurement(string name, long elapsedTicks, long selfTicks) {
+        if (!Measurements.TryGetValue(name, out var measurement)) {
+            measurement = new Measurement();
+            Measurements.Add(name, measurement);
+        }
+
+        measurement.SelfTicks += selfTicks;
+        measurement.TotalTicks += elapsedTicks;
+        measurement.CallCount++;
+        measurement.MaxSelfTicks = Math.Max(measurement.MaxSelfTicks, selfTicks);
+        measurement.MaxTicks = Math.Max(measurement.MaxTicks, elapsedTicks);
+
+        TryReport();
+    }
+
+    private static void TryReport() {
+        if (!Prefs.DevMode) {
+            return;
+        }
+
+        var tickManager = Find.TickManager;
+        if (tickManager == null) {
+            return;
+        }
+
+        var currentTick = tickManager.TicksGame;
+        if (currentTick < _nextReportTick) {
+            return;
+        }
+
+        _nextReportTick = currentTick + ReportIntervalTicks;
+        if (Measurements.Count == 0) {
+            return;
+        }
+
+        var sortedMeasurements = Measurements
+            .OrderByDescending(pair => pair.Value.SelfTicks)
+            .ThenByDescending(pair => pair.Value.TotalTicks)
+            .ToList();
+        var totalMeasuredTicks = sortedMeasurements.Sum(pair => pair.Value.TotalTicks);
+        var totalMeasuredSelfTicks = sortedMeasurements.Sum(pair => pair.Value.SelfTicks);
+        var eligibleMeasurements = sortedMeasurements
+            .Where(pair => TicksToMilliseconds(pair.Value.SelfTicks) >= MinimumTotalMillisecondsToReport ||
+                           TicksToMilliseconds(pair.Value.TotalTicks) >= MinimumTotalMillisecondsToReport)
+            .ToList();
+        var reportedEntryCount = 0;
+
+        ReportBuilder.Clear();
+        ReportBuilder.Append("[CombatRefactor] DEBUG profiler ");
+        ReportBuilder.Append("tick=");
+        ReportBuilder.Append(currentTick);
+        ReportBuilder.Append(", window=");
+        ReportBuilder.Append(ReportIntervalTicks);
+        ReportBuilder.Append(", total=");
+        ReportBuilder.Append(TicksToMilliseconds(totalMeasuredTicks).ToString("F3"));
+        ReportBuilder.Append(" ms");
+        ReportBuilder.Append(", self=");
+        ReportBuilder.Append(TicksToMilliseconds(totalMeasuredSelfTicks).ToString("F3"));
+        ReportBuilder.AppendLine(" ms");
+
+        foreach (var (name, measurement) in eligibleMeasurements) {
+            var selfMilliseconds = TicksToMilliseconds(measurement.SelfTicks);
+            var totalMilliseconds = TicksToMilliseconds(measurement.TotalTicks);
+            var averageMilliseconds = measurement.CallCount > 0
+                ? selfMilliseconds / measurement.CallCount
+                : 0d;
+            var maxSelfMilliseconds = TicksToMilliseconds(measurement.MaxSelfTicks);
+            var maxMilliseconds = TicksToMilliseconds(measurement.MaxTicks);
+            var share = totalMeasuredSelfTicks > 0
+                ? measurement.SelfTicks * 100d / totalMeasuredSelfTicks
+                : 0d;
+
+            ReportBuilder.Append(" - ");
+            ReportBuilder.Append(name);
+            ReportBuilder.Append(": ");
+            ReportBuilder.Append(share.ToString("F1"));
+            ReportBuilder.Append("%");
+            ReportBuilder.Append(": calls=");
+            ReportBuilder.Append(measurement.CallCount);
+            ReportBuilder.Append(", self=");
+            ReportBuilder.Append(selfMilliseconds.ToString("F3"));
+            ReportBuilder.Append(" ms");
+            ReportBuilder.Append(", total=");
+            ReportBuilder.Append(totalMilliseconds.ToString("F3"));
+            ReportBuilder.Append(" ms");
+            ReportBuilder.Append(", avg=");
+            ReportBuilder.Append(averageMilliseconds.ToString("F4"));
+            ReportBuilder.Append(" ms");
+            ReportBuilder.Append(", maxSelf=");
+            ReportBuilder.Append(maxSelfMilliseconds.ToString("F4"));
+            ReportBuilder.Append(" ms");
+            ReportBuilder.Append(", max=");
+            ReportBuilder.Append(maxMilliseconds.ToString("F4"));
+            ReportBuilder.AppendLine(" ms");
+
+            reportedEntryCount++;
+            if (reportedEntryCount >= MaxEntriesPerReport) {
+                break;
+            }
+        }
+
+        var hiddenEntryCount = eligibleMeasurements.Count - reportedEntryCount;
+        if (hiddenEntryCount > 0) {
+            ReportBuilder.Append(" - ");
+            ReportBuilder.Append(hiddenEntryCount);
+            ReportBuilder.AppendLine(" more entries omitted");
+        }
+
+        EmitLogMessage(ReportBuilder.ToString().TrimEnd());
+        Measurements.Clear();
+    }
+
+    private static void EmitLogMessage(string text) {
+        lock (LogLock) {
+            MessageQueue.Enqueue(new LogMessage(LogMessageType.Message, text, string.Empty));
+            PostMessage();
+        }
+    }
+
+    private static double TicksToMilliseconds(long ticks) {
+        return ticks * 1000d / Stopwatch.Frequency;
+    }
+
+    private sealed class Measurement {
+        public int CallCount;
+        public long MaxSelfTicks;
+        public long MaxTicks;
+        public long SelfTicks;
+        public long TotalTicks;
+    }
+
+    internal sealed class ScopeState(string name, long startTimestamp, ScopeState? parent) {
+        public long ChildTicks;
+        public string Name { get; } = name;
+        public ScopeState? Parent { get; } = parent;
+        public long StartTimestamp { get; } = startTimestamp;
+    }
+    #else
+    public static Scope Measure(string name) {
+        return default;
+    }
+    #endif
+
+    public readonly struct Scope : IDisposable {
+        #if DEBUG
+        private readonly ScopeState? _state;
+
+        internal Scope(ScopeState state) {
+            _state = state;
+        }
+        #endif
+
+        public void Dispose() {
+            #if DEBUG
+            if (_state == null) {
+                return;
+            }
+
+            var elapsedTicks = Stopwatch.GetTimestamp() - _state.StartTimestamp;
+            var selfTicks = Math.Max(0L, elapsedTicks - _state.ChildTicks);
+            _currentScope = _state.Parent;
+            if (_state.Parent != null) {
+                _state.Parent.ChildTicks += elapsedTicks;
+            }
+
+            RecordMeasurement(_state.Name, elapsedTicks, selfTicks);
+            #endif
+        }
+    }
+}

@@ -6,7 +6,6 @@ public static class ProjectileAccuracyUtility {
     private const float MaximumSpreadAngleDegrees = 45f;
     private const float SpreadCurveExponent = 2f;
     private const float AdditionalBurstShotAccuracyPenalty = 0.1f;
-
     private static float GetWeaponAccuracy(Verb_LaunchProjectile verb) {
         var equipment = verb.EquipmentSource;
         if (equipment != null) {
@@ -40,9 +39,9 @@ public static class ProjectileAccuracyUtility {
     }
 
     public static float GetFinalAccuracy(Verb_LaunchProjectile verb) {
-        return Mathf.Clamp01(GetWeaponAccuracy(verb) *
-                             GetShooterAccuracy(verb.caster) *
-                             GetBurstShotAccuracyFactor(verb));
+        using var _ = PerformanceProfiler.Measure("Accuracy.GetFinalAccuracy");
+
+        return CalculateFinalAccuracy(verb);
     }
 
     public static float GetMaximumSpreadAngle(float finalAccuracy) {
@@ -67,5 +66,11 @@ public static class ProjectileAccuracyUtility {
         return Mathf.Abs(spreadAngle) <= 0.0001f
             ? shootLine.Dest
             : (source + shotVector.RotatedBy(spreadAngle)).ToIntVec3().ClampInsideMap(map);
+    }
+
+    private static float CalculateFinalAccuracy(Verb_LaunchProjectile verb) {
+        return Mathf.Clamp01(GetWeaponAccuracy(verb) *
+                             GetShooterAccuracy(verb.caster) *
+                             GetBurstShotAccuracyFactor(verb));
     }
 }

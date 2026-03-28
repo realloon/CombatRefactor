@@ -16,6 +16,10 @@ public static class CombatRefactor {
 
         ProjectileCoverUtility.InjectProjectileStageComp();
         InjectTestFireSelector();
+
+        #if DEBUG
+        Log.Message("[CombatRefactor] DEBUG profiler enabled.");
+        #endif
     }
 
     private static void InjectTestFireSelector() {

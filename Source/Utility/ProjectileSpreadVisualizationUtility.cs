@@ -8,6 +8,8 @@ public static class ProjectileSpreadVisualizationUtility {
     private const float LineWidth = 0.08f;
 
     public static void DrawSpreadBounds(Verb_LaunchProjectile verb, LocalTargetInfo target) {
+        using var _ = PerformanceProfiler.Measure("Spread.DrawSpreadBounds");
+
         if (verb.Caster == null || !target.IsValid || verb.Caster.Map == null) {
             return;
         }

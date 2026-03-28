@@ -10,6 +10,8 @@ namespace CombatRefactor.HarmonyPatches;
 public static class Patch_Verb_DrawHighlight {
     [UsedImplicitly]
     public static void Postfix(Verb __instance, LocalTargetInfo target) {
+        using var _ = PerformanceProfiler.Measure("Patch.Verb.DrawHighlight");
+
         if (__instance is not Verb_LaunchProjectile launchProjectile) {
             return;
         }

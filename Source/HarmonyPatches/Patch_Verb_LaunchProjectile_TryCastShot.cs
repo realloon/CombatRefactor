@@ -31,6 +31,8 @@ public static class Patch_Verb_LaunchProjectile_TryCastShot {
 
     [UsedImplicitly]
     public static bool Prefix(Verb_LaunchProjectile __instance, ref bool __result) {
+        using var _ = PerformanceProfiler.Measure("Patch.Verb_LaunchProjectile.TryCastShot");
+
         var currentTarget = __instance.CurrentTarget;
         var caster = __instance.caster;
         if (currentTarget.HasThing && currentTarget.Thing.Map != caster.Map) {
@@ -68,29 +70,8 @@ public static class Patch_Verb_LaunchProjectile_TryCastShot {
         var shootSource = resultingLine.Source;
         var launchOrigin = caster.DrawPos;
         var protectedLeanSupportCell =
-            ProjectileCoverUtility.ResolveProtectedLeanSupportCell(caster.Map, caster.Position, shootSource, currentTarget);
-
-        Projectile SpawnPreparedProjectile() {
-            var projectile = (Projectile)GenSpawn.Spawn(projectileDef, shootSource, caster.Map);
-            ProjectileCoverUtility.OverrideFlightSource(projectile, shootSource);
-            ProjectileCoverUtility.OverrideProtectedLeanSupportCell(projectile, protectedLeanSupportCell);
-            if (equipmentSource != null && equipmentSource.TryGetComp<CompUniqueWeapon>(out var comp)) {
-                foreach (var trait in comp.TraitsListForReading) {
-                    if (trait.damageDefOverride != null) {
-                        projectile.damageDefOverride = trait.damageDefOverride;
-                    }
-
-                    if (trait.extraDamages.NullOrEmpty()) {
-                        continue;
-                    }
-
-                    projectile.extraDamages ??= [];
-                    projectile.extraDamages.AddRange(trait.extraDamages);
-                }
-            }
-
-            return projectile;
-        }
+            ProjectileCoverUtility.ResolveProtectedLeanSupportCell(caster.Map, caster.Position, shootSource,
+                currentTarget);
 
         if (__instance.verbProps.ForcedMissRadius > 0.5f) {
             var forcedMissRadius = __instance.verbProps.ForcedMissRadius;
@@ -177,5 +158,32 @@ public static class Patch_Verb_LaunchProjectile_TryCastShot {
 
         __result = true;
         return false;
+
+        Projectile SpawnPreparedProjectile() {
+            using var measure = PerformanceProfiler.Measure("Patch.Verb_LaunchProjectile.SpawnPreparedProjectile");
+
+            var projectile = (Projectile)GenSpawn.Spawn(projectileDef, shootSource, caster.Map);
+            ProjectileCoverUtility.OverrideFlightSource(projectile, shootSource);
+            ProjectileCoverUtility.OverrideProtectedLeanSupportCell(projectile, protectedLeanSupportCell);
+
+            if (equipmentSource == null || !equipmentSource.TryGetComp<CompUniqueWeapon>(out var comp)) {
+                return projectile;
+            }
+
+            foreach (var trait in comp.TraitsListForReading) {
+                if (trait.damageDefOverride != null) {
+                    projectile.damageDefOverride = trait.damageDefOverride;
+                }
+
+                if (trait.extraDamages.NullOrEmpty()) {
+                    continue;
+                }
+
+                projectile.extraDamages ??= [];
+                projectile.extraDamages.AddRange(trait.extraDamages);
+            }
+
+            return projectile;
+        }
     }
 }

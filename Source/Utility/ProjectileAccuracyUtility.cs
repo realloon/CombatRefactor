@@ -6,6 +6,21 @@ public static class ProjectileAccuracyUtility {
     private const float MaximumSpreadAngleDegrees = 45f;
     private const float SpreadCurveExponent = 2f;
     private const float AdditionalBurstShotAccuracyPenalty = 0.1f;
+
+    private static readonly SimpleCurve ShooterAccuracyFactorCurve = [
+        new CurvePoint(0.70f, 0.15f),
+        new CurvePoint(0.80f, 0.28f),
+        new CurvePoint(0.89f, 0.42f),
+        new CurvePoint(0.91f, 0.48f),
+        new CurvePoint(0.935f, 0.58f),
+        new CurvePoint(0.965f, 0.74f),
+        new CurvePoint(0.9817f, 0.86f),
+        new CurvePoint(0.9867f, 0.94f),
+        new CurvePoint(0.9883f, 0.97f),
+        new CurvePoint(0.99f, 1.00f),
+        new CurvePoint(1.00f, 1.00f)
+    ];
+
     public static float GetWeaponAccuracy(Verb_LaunchProjectile verb) {
         var equipment = verb.EquipmentSource;
         if (equipment != null) {
@@ -26,6 +41,14 @@ public static class ProjectileAccuracyUtility {
     }
 
     public static float GetShooterAccuracy(Thing caster) {
+        var sourceAccuracy = caster is Pawn pawn
+            ? pawn.GetStatValue(StatDefOf.ShootingAccuracyPawn)
+            : caster.GetStatValue(StatDefOf.ShootingAccuracyTurret);
+
+        return Mathf.Clamp01(ShooterAccuracyFactorCurve.Evaluate(Mathf.Clamp(sourceAccuracy, 0f, 1f)));
+    }
+
+    public static float GetShooterSourceAccuracy(Thing caster) {
         if (caster is Pawn pawn) {
             return Mathf.Clamp01(pawn.GetStatValue(StatDefOf.ShootingAccuracyPawn));
         }

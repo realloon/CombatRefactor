@@ -56,7 +56,8 @@ public static class ProjectileReadoutUtility {
 
         if (verb.verbProps.ForcedMissRadius > 0.5f) {
             stringBuilder.AppendLine();
-            stringBuilder.AppendLine("WeaponMissRadius".Translate() + ": " + verb.verbProps.ForcedMissRadius.ToString("F1"));
+            stringBuilder.AppendLine("WeaponMissRadius".Translate() + ": " +
+                                     verb.verbProps.ForcedMissRadius.ToString("F1"));
         }
 
         if (!verb.TryFindShootLineFromTo(verb.caster.Position, target, out var shootLine)) {
@@ -70,7 +71,7 @@ public static class ProjectileReadoutUtility {
         stringBuilder.AppendLine();
         stringBuilder.AppendLine("Shooting Accuracy: " + stageOne.FinalAccuracy.ToStringPercent());
         stringBuilder.AppendLine("   Weapon Accuracy: " + stageOne.WeaponAccuracy.ToStringPercent());
-        stringBuilder.AppendLine("   Shooter Accuracy: " + stageOne.ShooterAccuracy.ToStringPercent());
+        stringBuilder.AppendLine("   Shooter Factor: " + stageOne.ShooterAccuracy.ToStringPercent());
         stringBuilder.AppendLine("   Burst Factor: " + stageOne.BurstFactor.ToStringPercent());
 
         stringBuilder.AppendLine("Path Clearance: " + stageTwo.PassChance.ToStringPercent());
@@ -100,7 +101,6 @@ public static class ProjectileReadoutUtility {
         var shooterAccuracy = ProjectileAccuracyUtility.GetShooterAccuracy(verb.caster);
         var burstFactor = ProjectileAccuracyUtility.GetBurstShotAccuracyFactor(verb);
         var finalAccuracy = ProjectileAccuracyUtility.GetFinalAccuracy(verb);
-        var maximumSpreadAngle = ProjectileAccuracyUtility.GetMaximumSpreadAngle(finalAccuracy);
 
         return new StageOnePreview {
             WeaponAccuracy = weaponAccuracy,

@@ -217,39 +217,9 @@ public static class ProjectileCoverUtility {
             return false;
         }
 
-        if (newCell.AdjacentToCardinal(lastCell)) {
-            return TryInterceptCoverAtCell(projectile, newCell);
-        }
-
-        var checkedCells = SimplePool<HashSet<IntVec3>>.Get();
-        checkedCells.Clear();
-        try {
-            var cursor = lastExactPos;
-            var segment = newExactPos - lastExactPos;
-            var step = segment.normalized * 0.2f;
-            var maxSteps = (int)(segment.MagnitudeHorizontal() / 0.2f);
-
-            for (var stepIndex = 0; stepIndex <= maxSteps; stepIndex++) {
-                cursor += step;
-                var cell = cursor.ToIntVec3();
-                if (!checkedCells.Add(cell)) {
-                    continue;
-                }
-
-                if (TryInterceptCoverAtCell(projectile, cell)) {
-                    return true;
-                }
-
-                if (cell == newCell) {
-                    return false;
-                }
-            }
-        } finally {
-            checkedCells.Clear();
-            SimplePool<HashSet<IntVec3>>.Return(checkedCells);
-        }
-
-        return false;
+        return newCell.AdjacentToCardinal(lastCell)
+            ? TryInterceptCoverAtCell(projectile, newCell)
+            : TryInterceptCoverAlongGridPath(projectile, lastExactPos, lastCell, newExactPos, newCell);
     }
 
     public static bool TryHandleLeanTargetImpact(Projectile projectile) {
@@ -313,6 +283,42 @@ public static class ProjectileCoverUtility {
 
         if (!hasCover) {
             ThrowDebugText(projectile, "o", cell);
+        }
+
+        return false;
+    }
+
+    private static bool TryInterceptCoverAlongGridPath(Projectile projectile, Vector3 startPos, IntVec3 startCell,
+        Vector3 endPos, IntVec3 endCell) {
+        var deltaX = endPos.x - startPos.x;
+        var deltaZ = endPos.z - startPos.z;
+        var stepX = Math.Sign(deltaX);
+        var stepZ = Math.Sign(deltaZ);
+        var tDeltaX = stepX == 0 ? float.PositiveInfinity : Mathf.Abs(1f / deltaX);
+        var tDeltaZ = stepZ == 0 ? float.PositiveInfinity : Mathf.Abs(1f / deltaZ);
+        var nextBoundaryX = stepX > 0 ? startCell.x + 1f : startCell.x;
+        var nextBoundaryZ = stepZ > 0 ? startCell.z + 1f : startCell.z;
+        var tMaxX = stepX == 0 ? float.PositiveInfinity : Mathf.Abs((nextBoundaryX - startPos.x) / deltaX);
+        var tMaxZ = stepZ == 0 ? float.PositiveInfinity : Mathf.Abs((nextBoundaryZ - startPos.z) / deltaZ);
+        var currentCell = startCell;
+
+        while (currentCell != endCell) {
+            if (tMaxX < tMaxZ) {
+                currentCell.x += stepX;
+                tMaxX += tDeltaX;
+            } else if (tMaxZ < tMaxX) {
+                currentCell.z += stepZ;
+                tMaxZ += tDeltaZ;
+            } else {
+                currentCell.x += stepX;
+                currentCell.z += stepZ;
+                tMaxX += tDeltaX;
+                tMaxZ += tDeltaZ;
+            }
+
+            if (TryInterceptCoverAtCell(projectile, currentCell)) {
+                return true;
+            }
         }
 
         return false;

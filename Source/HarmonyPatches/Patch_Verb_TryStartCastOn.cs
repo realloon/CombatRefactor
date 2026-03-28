@@ -1,5 +1,6 @@
-using CombatRefactor.Utility;
+using JetBrains.Annotations;
 using HarmonyLib;
+using CombatRefactor.Utility;
 
 // ReSharper disable InconsistentNaming
 
@@ -14,6 +15,7 @@ namespace CombatRefactor.HarmonyPatches;
     typeof(bool),
 })]
 public static class Patch_Verb_TryStartCastOn {
+    [UsedImplicitly]
     public static bool Prefix(Verb __instance, LocalTargetInfo castTarg, ref bool __result) {
         if (__instance is not Verb_LaunchProjectile launchProjectile) {
             return true;
@@ -24,8 +26,7 @@ public static class Patch_Verb_TryStartCastOn {
             return true;
         }
 
-        if (castTarg.Thing is Pawn targetPawn &&
-            targetPawn.Faction != null &&
+        if (castTarg.Thing is Pawn { Faction: not null } targetPawn &&
             !targetPawn.Faction.HostileTo(caster.Faction)) {
             return true;
         }
@@ -34,7 +35,9 @@ public static class Patch_Verb_TryStartCastOn {
             return true;
         }
 
-        if (!ProjectileCoverUtility.HasFriendlyPawnBlocker(caster, caster.Map, resultingLine.Source, castTarg, castTarg)) {
+        var usedTarget = new LocalTargetInfo(resultingLine.Dest);
+        if (!ProjectileCoverUtility.HasFriendlyPawnBlocker(caster, caster.Map, resultingLine.Source, usedTarget,
+                castTarg)) {
             return true;
         }
 

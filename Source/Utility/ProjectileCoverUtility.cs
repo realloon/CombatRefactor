@@ -4,6 +4,9 @@ using UnityEngine;
 namespace CombatRefactor.Utility;
 
 public static class ProjectileCoverUtility {
+    private static readonly AccessTools.FieldRef<Projectile, Vector3> DestinationRef =
+        AccessTools.FieldRefAccess<Projectile, Vector3>("destination");
+
     private static readonly AccessTools.FieldRef<Projectile, ThingDef> TargetCoverDefRef =
         AccessTools.FieldRefAccess<Projectile, ThingDef>("targetCoverDef");
 
@@ -13,6 +16,11 @@ public static class ProjectileCoverUtility {
     private static readonly Action<Projectile, Thing, bool> Impact =
         AccessTools.MethodDelegate<Action<Projectile, Thing, bool>>(
             AccessTools.Method(typeof(Projectile), "Impact", [typeof(Thing), typeof(bool)])
+        );
+
+    private static readonly Func<Projectile, Thing, bool> CanHit =
+        AccessTools.MethodDelegate<Func<Projectile, Thing, bool>>(
+            AccessTools.Method(typeof(Projectile), "CanHit", [typeof(Thing)])
         );
 
     private static readonly Action<Projectile, string, IntVec3> ThrowDebugText =
@@ -36,7 +44,20 @@ public static class ProjectileCoverUtility {
     }
 
     public static void InitializeForLaunch(Projectile projectile) {
+        ApplyPendingFlightDestination(projectile);
         projectile.TryGetComp<CompProjectileStage>()?.RollCoverIntercept();
+    }
+
+    public static void OverrideFlightDestination(Projectile projectile, IntVec3 destinationCell) {
+        if (!destinationCell.IsValid) {
+            return;
+        }
+
+        projectile.TryGetComp<CompProjectileStage>()?.SetPendingFlightDestination(destinationCell);
+    }
+
+    public static void MarkTargetUsesLeanExposure(Projectile projectile) {
+        projectile.TryGetComp<CompProjectileStage>()?.SetUsesTargetLeanExposure(true);
     }
 
     public static bool HasFriendlyPawnBlocker(Thing launcher, Map map, IntVec3 sourceCell, LocalTargetInfo usedTarget,
@@ -128,8 +149,32 @@ public static class ProjectileCoverUtility {
         return false;
     }
 
+    public static bool TryHandleLeanTargetImpact(Projectile projectile) {
+        var comp = projectile.TryGetComp<CompProjectileStage>();
+        if (comp is not { UsesTargetLeanExposure: true }) {
+            return false;
+        }
+
+        if (!projectile.usedTarget.HasThing || projectile.usedTarget.Thing is not Pawn pawn) {
+            return false;
+        }
+
+        if (!CanHit(projectile, pawn)) {
+            return false;
+        }
+
+        var hitChance = Mathf.Clamp01(pawn.BodySize / 2f);
+        if (Rand.Chance(hitChance)) {
+            return false;
+        }
+
+        ThrowDebugText(projectile, $"lean\n{hitChance.ToStringPercent()}", projectile.Position);
+        Impact(projectile, null!, false);
+        return true;
+    }
+
     private static bool TryInterceptCoverAtCell(Projectile projectile, IntVec3 cell) {
-        if (projectile.Map == null || projectile.usedTarget.Cell == cell) {
+        if (projectile.Map == null || GetTerminalFlightCell(projectile) == cell) {
             return false;
         }
 
@@ -173,6 +218,25 @@ public static class ProjectileCoverUtility {
         }
 
         return comp.CoverInterceptRoll;
+    }
+
+    private static void ApplyPendingFlightDestination(Projectile projectile) {
+        var comp = projectile.TryGetComp<CompProjectileStage>();
+        if (comp == null || !comp.HasPendingFlightDestination) {
+            return;
+        }
+
+        comp.SetFlightDestination(comp.PendingFlightDestination);
+        DestinationRef(projectile) =
+            comp.PendingFlightDestination.ToVector3Shifted() + Gen.RandomHorizontalVector(0.3f);
+        comp.ClearPendingFlightDestination();
+    }
+
+    private static IntVec3 GetTerminalFlightCell(Projectile projectile) {
+        var comp = projectile.TryGetComp<CompProjectileStage>();
+        return comp is { HasFlightDestination: true }
+            ? comp.FlightDestination
+            : projectile.usedTarget.Cell;
     }
 
     private static float GetInterceptStrength(Projectile projectile, Thing thing) {

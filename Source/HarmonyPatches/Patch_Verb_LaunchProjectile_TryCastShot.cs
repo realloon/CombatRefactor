@@ -154,9 +154,16 @@ public static class Patch_Verb_LaunchProjectile_TryCastShot {
         ThrowDebugText(__instance, "ToHit" + (CanHitNonTargetPawnsNowRef(__instance) ? "\nchntp" : ""));
         if (currentTarget.Thing != null) {
             var projectile = SpawnPreparedProjectile();
+            var launchDestination = currentTarget.Cell;
+            if (currentTarget.Thing is Pawn && resultingLine.Dest != currentTarget.Cell) {
+                launchDestination = resultingLine.Dest;
+                ProjectileCoverUtility.MarkTargetUsesLeanExposure(projectile);
+                ProjectileCoverUtility.OverrideFlightDestination(projectile, launchDestination);
+            }
+
             projectile.Launch(manningPawn, drawPos, currentTarget, currentTarget, directHitFlags,
                 __instance.preventFriendlyFire, equipmentSource, targetCoverDef);
-            ThrowDebugTextAt(__instance, "Hit\nDest", currentTarget.Cell);
+            ThrowDebugTextAt(__instance, "Hit\nDest", launchDestination);
         } else {
             var projectile = SpawnPreparedProjectile();
             projectile.Launch(manningPawn, drawPos, resultingLine.Dest, currentTarget, directHitFlags,

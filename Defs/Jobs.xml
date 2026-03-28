@@ -1,9 +1,9 @@
-<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8"?>
 <Defs>
   <JobDef>
     <defName>CRTeam_ReloadMagazine</defName>
     <driverClass>CombatRefactor.JobDriver_ReloadMagazine</driverClass>
-    <reportString>正在装填武器。</reportString>
+    <reportString>reloading weapon</reportString>
     <suspendable>false</suspendable>
     <allowOpportunisticPrefix>true</allowOpportunisticPrefix>
   </JobDef>
@@ -11,7 +11,7 @@
   <JobDef>
     <defName>CRTeam_SwitchFireMode</defName>
     <driverClass>CombatRefactor.JobDriver_SwitchFireMode</driverClass>
-    <reportString>正在调整武器快慢机。</reportString>
+    <reportString>switching fire mode</reportString>
     <suspendable>false</suspendable>
     <allowOpportunisticPrefix>true</allowOpportunisticPrefix>
   </JobDef>

@@ -5,6 +5,7 @@ namespace CombatRefactor.Utility;
 public static class ProjectileAccuracyUtility {
     private const float MaximumSpreadAngleDegrees = 45f;
     private const float SpreadCurveExponent = 2f;
+    private const float AdditionalBurstShotAccuracyPenalty = 0.1f;
 
     private static float GetWeaponAccuracy(Verb_LaunchProjectile verb) {
         var equipment = verb.EquipmentSource;
@@ -33,8 +34,15 @@ public static class ProjectileAccuracyUtility {
         return Mathf.Clamp01(caster.GetStatValue(StatDefOf.ShootingAccuracyTurret));
     }
 
+    private static float GetBurstShotAccuracyFactor(Verb_LaunchProjectile verb) {
+        var burstShotCount = Mathf.Max(1, verb.BurstShotCount);
+        return Mathf.Clamp01(1f - (burstShotCount - 1) * AdditionalBurstShotAccuracyPenalty);
+    }
+
     public static float GetFinalAccuracy(Verb_LaunchProjectile verb) {
-        return Mathf.Clamp01(GetWeaponAccuracy(verb) * GetShooterAccuracy(verb.caster));
+        return Mathf.Clamp01(GetWeaponAccuracy(verb) *
+                             GetShooterAccuracy(verb.caster) *
+                             GetBurstShotAccuracyFactor(verb));
     }
 
     public static float GetMaximumSpreadAngle(float finalAccuracy) {
@@ -55,10 +63,9 @@ public static class ProjectileAccuracyUtility {
         }
 
         var spreadAngle = Rand.Range(-maximumSpreadAngle, maximumSpreadAngle);
-        if (Mathf.Abs(spreadAngle) <= 0.0001f) {
-            return shootLine.Dest;
-        }
 
-        return (source + shotVector.RotatedBy(spreadAngle)).ToIntVec3().ClampInsideMap(map);
+        return Mathf.Abs(spreadAngle) <= 0.0001f
+            ? shootLine.Dest
+            : (source + shotVector.RotatedBy(spreadAngle)).ToIntVec3().ClampInsideMap(map);
     }
 }

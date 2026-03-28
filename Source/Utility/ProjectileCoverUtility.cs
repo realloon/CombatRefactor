@@ -222,13 +222,8 @@ public static class ProjectileCoverUtility {
             : TryInterceptCoverAlongGridPath(projectile, lastExactPos, lastCell, newExactPos, newCell);
     }
 
-    public static bool TryHandleLeanTargetImpact(Projectile projectile) {
-        using var _ = PerformanceProfiler.Measure("Cover.TryHandleLeanTargetImpact");
-
-        var comp = projectile.TryGetComp<CompProjectileStage>();
-        if (comp is not { UsesTargetLeanExposure: true }) {
-            return false;
-        }
+    public static bool TryHandleDirectTargetImpact(Projectile projectile) {
+        using var _ = PerformanceProfiler.Measure("Cover.TryHandleDirectTargetImpact");
 
         if (!projectile.usedTarget.HasThing || projectile.usedTarget.Thing is not Pawn pawn) {
             return false;
@@ -238,14 +233,33 @@ public static class ProjectileCoverUtility {
             return false;
         }
 
-        var hitChance = Mathf.Clamp01(pawn.BodySize / 2f);
+        var hitChance = CalculateDirectHitChance(projectile, pawn);
         if (Rand.Chance(hitChance)) {
-            return false;
+            ThrowDebugText(projectile, $"hit\n{hitChance.ToStringPercent()}", projectile.Position);
+            Impact(projectile, pawn, false);
+        } else {
+            ThrowDebugText(projectile, $"miss\n{hitChance.ToStringPercent()}", projectile.Position);
+            Impact(projectile, null!, false);
         }
 
-        ThrowDebugText(projectile, $"lean\n{hitChance.ToStringPercent()}", projectile.Position);
-        Impact(projectile, null!, false);
         return true;
+    }
+
+    public static float GetDirectTargetHitChance(Pawn pawn, bool usesTargetLeanExposure) {
+        var exposureChance =
+            pawn.BodySize *
+            GetDirectTargetPostureFactor(pawn) *
+            GetDirectTargetLeanFactor(usesTargetLeanExposure);
+
+        return Mathf.Clamp01(exposureChance);
+    }
+
+    public static float GetDirectTargetPostureFactor(Pawn pawn) {
+        return pawn.GetPosture() == PawnPosture.Standing ? 1f : 0.5f;
+    }
+
+    public static float GetDirectTargetLeanFactor(bool usesTargetLeanExposure) {
+        return usesTargetLeanExposure ? 0.5f : 1f;
     }
 
     private static bool TryInterceptCoverAtCell(Projectile projectile, IntVec3 cell) {
@@ -478,6 +492,10 @@ public static class ProjectileCoverUtility {
         return false;
     }
 
+    private static float CalculateDirectHitChance(Projectile projectile, Pawn pawn) {
+        return GetDirectTargetHitChance(pawn, GetLeanExposureFactor(projectile) < 1f);
+    }
+
     private static float GetPawnInterceptStrength(Projectile projectile, Pawn pawn) {
         if ((projectile.HitFlags & ProjectileHitFlags.NonTargetPawns) == ProjectileHitFlags.None) {
             return 0f;
@@ -506,5 +524,10 @@ public static class ProjectileCoverUtility {
         }
 
         return interceptStrength;
+    }
+
+    private static float GetLeanExposureFactor(Projectile projectile) {
+        var comp = projectile.TryGetComp<CompProjectileStage>();
+        return GetDirectTargetLeanFactor(comp is { UsesTargetLeanExposure: true });
     }
 }

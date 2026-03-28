@@ -6,7 +6,7 @@ public static class ProjectileAccuracyUtility {
     private const float MaximumSpreadAngleDegrees = 45f;
     private const float SpreadCurveExponent = 2f;
     private const float AdditionalBurstShotAccuracyPenalty = 0.1f;
-    private static float GetWeaponAccuracy(Verb_LaunchProjectile verb) {
+    public static float GetWeaponAccuracy(Verb_LaunchProjectile verb) {
         var equipment = verb.EquipmentSource;
         if (equipment != null) {
             return Mathf.Max(
@@ -25,7 +25,7 @@ public static class ProjectileAccuracyUtility {
         );
     }
 
-    private static float GetShooterAccuracy(Thing caster) {
+    public static float GetShooterAccuracy(Thing caster) {
         if (caster is Pawn pawn) {
             return Mathf.Clamp01(pawn.GetStatValue(StatDefOf.ShootingAccuracyPawn));
         }
@@ -33,7 +33,7 @@ public static class ProjectileAccuracyUtility {
         return Mathf.Clamp01(caster.GetStatValue(StatDefOf.ShootingAccuracyTurret));
     }
 
-    private static float GetBurstShotAccuracyFactor(Verb_LaunchProjectile verb) {
+    public static float GetBurstShotAccuracyFactor(Verb_LaunchProjectile verb) {
         var burstShotCount = Mathf.Max(1, verb.BurstShotCount);
         return Mathf.Clamp01(1f - (burstShotCount - 1) * AdditionalBurstShotAccuracyPenalty);
     }

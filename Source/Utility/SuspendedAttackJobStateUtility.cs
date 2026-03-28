@@ -5,30 +5,42 @@ namespace CombatRefactor.Utility;
 
 public static class SuspendedAttackJobStateUtility {
     private sealed class SuspendedAttackState {
-        public bool StartedIncapacitated { get; set; }
+        public Job SuspendedJob { get; set; } = null!;
+
+        public bool TargetWasDowned { get; set; }
     }
 
-    private static readonly ConditionalWeakTable<Job, SuspendedAttackState> SuspendedStates = new();
+    private static readonly ConditionalWeakTable<Pawn, SuspendedAttackState> SuspendedStates = new();
 
-    public static void Record(Job? job) {
+    public static void Record(Pawn pawn, Job? job) {
+        Clear(pawn);
         if (job?.def != RimWorld.JobDefOf.AttackStatic || job.targetA.Thing is not Pawn targetPawn) {
             return;
         }
 
-        SuspendedStates.Remove(job);
-        SuspendedStates.Add(job, new SuspendedAttackState {
-            StartedIncapacitated = targetPawn.Downed
+        SuspendedStates.Add(pawn, new SuspendedAttackState {
+            SuspendedJob = job,
+            TargetWasDowned = targetPawn.Downed
         });
     }
 
-    public static bool TryConsume(Job? job, out bool startedIncapacitated) {
-        startedIncapacitated = false;
-        if (job == null || !SuspendedStates.TryGetValue(job, out var suspendedState)) {
-            return false;
+    public static void DiscardInvalidQueuedAttack(Pawn pawn) {
+        if (!SuspendedStates.TryGetValue(pawn, out var suspendedState)) {
+            return;
         }
 
-        startedIncapacitated = suspendedState.StartedIncapacitated;
-        SuspendedStates.Remove(job);
-        return true;
+        Clear(pawn);
+        if (suspendedState.TargetWasDowned ||
+            suspendedState.SuspendedJob.targetA.Thing is not Pawn targetPawn ||
+            !targetPawn.Downed) {
+            return;
+        }
+
+        var queuedJob = pawn.jobs.jobQueue.Extract(suspendedState.SuspendedJob);
+        queuedJob?.Cleanup(pawn, canReturnToPool: true);
+    }
+
+    public static void Clear(Pawn pawn) {
+        SuspendedStates.Remove(pawn);
     }
 }

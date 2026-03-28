@@ -124,7 +124,7 @@ public class CompMagazine : ThingComp, IEquippedGizmoProvider {
             return;
         }
 
-        SuspendedAttackJobStateUtility.Record(pawn.CurJob);
+        SuspendedAttackJobStateUtility.Record(pawn, pawn.CurJob);
         var reloadJob = JobMaker.MakeJob(JobDefOf.CRTeam_ReloadMagazine, pawn, parent);
         pawn.jobs.StartJob(reloadJob, JobCondition.InterruptForced, resumeCurJobAfterwards: true, tag: JobTag.Misc);
     }

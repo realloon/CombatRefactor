@@ -1,5 +1,6 @@
 using JetBrains.Annotations;
 using Verse.AI;
+using CombatRefactor.Utility;
 
 namespace CombatRefactor;
 
@@ -21,11 +22,15 @@ public class JobDriver_ReloadMagazine : JobDriver {
         this.FailOn(() => !Magazine!.IsHeldBy(pawn));
         this.FailOn(() => !Magazine!.NeedsReload);
         this.FailOnIncapable(PawnCapacityDefOf.Manipulation);
+        AddFinishAction(_ => SuspendedAttackJobStateUtility.Clear(pawn));
 
         var wait = Toils_General.Wait(Magazine!.ReloadTicks);
         wait.WithProgressBarToilDelay(ActorInd);
         yield return wait;
 
-        yield return Toils_General.Do(() => Magazine?.CompleteReload());
+        yield return Toils_General.Do(() => {
+            Magazine?.CompleteReload();
+            SuspendedAttackJobStateUtility.DiscardInvalidQueuedAttack(pawn);
+        });
     }
 }

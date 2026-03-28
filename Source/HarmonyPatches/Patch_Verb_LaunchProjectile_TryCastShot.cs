@@ -65,11 +65,15 @@ public static class Patch_Verb_LaunchProjectile_TryCastShot {
             equipmentSource = caster;
         }
 
-        var drawPos = caster.DrawPos;
         var shootSource = resultingLine.Source;
+        var launchOrigin = caster.DrawPos;
+        var protectedLeanSupportCell =
+            ProjectileCoverUtility.ResolveProtectedLeanSupportCell(caster.Map, caster.Position, shootSource, currentTarget);
 
         Projectile SpawnPreparedProjectile() {
             var projectile = (Projectile)GenSpawn.Spawn(projectileDef, shootSource, caster.Map);
+            ProjectileCoverUtility.OverrideFlightSource(projectile, shootSource);
+            ProjectileCoverUtility.OverrideProtectedLeanSupportCell(projectile, protectedLeanSupportCell);
             if (equipmentSource != null && equipmentSource.TryGetComp<CompUniqueWeapon>(out var comp)) {
                 foreach (var trait in comp.TraitsListForReading) {
                     if (trait.damageDefOverride != null) {
@@ -112,7 +116,7 @@ public static class Patch_Verb_LaunchProjectile_TryCastShot {
                     }
 
                     var projectile = SpawnPreparedProjectile();
-                    projectile.Launch(manningPawn, drawPos, forcedMissTarget, currentTarget, projectileHitFlags,
+                    projectile.Launch(manningPawn, launchOrigin, forcedMissTarget, currentTarget, projectileHitFlags,
                         __instance.preventFriendlyFire, equipmentSource);
                     __result = true;
                     return false;
@@ -135,7 +139,7 @@ public static class Patch_Verb_LaunchProjectile_TryCastShot {
                 }
 
                 var projectile = SpawnPreparedProjectile();
-                projectile.Launch(manningPawn, drawPos, spreadDestination, currentTarget, projectileHitFlags,
+                projectile.Launch(manningPawn, launchOrigin, spreadDestination, currentTarget, projectileHitFlags,
                     __instance.preventFriendlyFire, equipmentSource, targetCoverDef);
                 __result = true;
                 return false;
@@ -161,12 +165,12 @@ public static class Patch_Verb_LaunchProjectile_TryCastShot {
                 ProjectileCoverUtility.OverrideFlightDestination(projectile, launchDestination);
             }
 
-            projectile.Launch(manningPawn, drawPos, currentTarget, currentTarget, directHitFlags,
+            projectile.Launch(manningPawn, launchOrigin, currentTarget, currentTarget, directHitFlags,
                 __instance.preventFriendlyFire, equipmentSource, targetCoverDef);
             ThrowDebugTextAt(__instance, "Hit\nDest", launchDestination);
         } else {
             var projectile = SpawnPreparedProjectile();
-            projectile.Launch(manningPawn, drawPos, resultingLine.Dest, currentTarget, directHitFlags,
+            projectile.Launch(manningPawn, launchOrigin, resultingLine.Dest, currentTarget, directHitFlags,
                 __instance.preventFriendlyFire, equipmentSource, targetCoverDef);
             ThrowDebugTextAt(__instance, "Hit\nDest", resultingLine.Dest);
         }

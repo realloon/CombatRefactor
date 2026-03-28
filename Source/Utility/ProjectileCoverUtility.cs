@@ -4,6 +4,9 @@ using UnityEngine;
 namespace CombatRefactor.Utility;
 
 public static class ProjectileCoverUtility {
+    private static readonly AccessTools.FieldRef<Projectile, Vector3> OriginRef =
+        AccessTools.FieldRefAccess<Projectile, Vector3>("origin");
+
     private static readonly AccessTools.FieldRef<Projectile, Vector3> DestinationRef =
         AccessTools.FieldRefAccess<Projectile, Vector3>("destination");
 
@@ -44,8 +47,18 @@ public static class ProjectileCoverUtility {
     }
 
     public static void InitializeForLaunch(Projectile projectile) {
+        ApplyPendingFlightSource(projectile);
         ApplyPendingFlightDestination(projectile);
+        ApplyPendingProtectedLeanSupportCell(projectile);
         projectile.TryGetComp<CompProjectileStage>()?.RollCoverIntercept();
+    }
+
+    public static void OverrideFlightSource(Projectile projectile, IntVec3 sourceCell) {
+        if (!sourceCell.IsValid) {
+            return;
+        }
+
+        projectile.TryGetComp<CompProjectileStage>()?.SetPendingFlightSource(sourceCell);
     }
 
     public static void OverrideFlightDestination(Projectile projectile, IntVec3 destinationCell) {
@@ -56,8 +69,102 @@ public static class ProjectileCoverUtility {
         projectile.TryGetComp<CompProjectileStage>()?.SetPendingFlightDestination(destinationCell);
     }
 
+    public static void OverrideProtectedLeanSupportCell(Projectile projectile, IntVec3 cell) {
+        if (!cell.IsValid) {
+            return;
+        }
+
+        projectile.TryGetComp<CompProjectileStage>()?.SetPendingProtectedLeanSupportCell(cell);
+    }
+
     public static void MarkTargetUsesLeanExposure(Projectile projectile) {
         projectile.TryGetComp<CompProjectileStage>()?.SetUsesTargetLeanExposure(true);
+    }
+
+    public static IntVec3 ResolveProtectedLeanSupportCell(Map map, IntVec3 shooterCell, IntVec3 flightSource,
+        LocalTargetInfo intendedTarget) {
+        if (flightSource == shooterCell) {
+            return IntVec3.Invalid;
+        }
+
+        var targetCell = intendedTarget.Thing != null
+            ? intendedTarget.Thing.OccupiedRect().ClosestCellTo(shooterCell)
+            : intendedTarget.Cell;
+
+        var angleFlat = (targetCell - shooterCell).AngleFlat;
+        var isEastSide = angleFlat is > 270f or < 90f;
+        var isWestSide = angleFlat is > 90f and < 270f;
+        var isSouthSide = angleFlat > 180f;
+        var isNorthSide = angleFlat < 180f;
+
+        var northBlocked = !(shooterCell + GenAdj.AdjacentCells[0]).CanBeSeenOver(map);
+        var eastBlocked = !(shooterCell + GenAdj.AdjacentCells[1]).CanBeSeenOver(map);
+        var southBlocked = !(shooterCell + GenAdj.AdjacentCells[2]).CanBeSeenOver(map);
+        var westBlocked = !(shooterCell + GenAdj.AdjacentCells[3]).CanBeSeenOver(map);
+        var southEastBlocked = !(shooterCell + GenAdj.AdjacentCells[4]).CanBeSeenOver(map);
+        var northEastBlocked = !(shooterCell + GenAdj.AdjacentCells[5]).CanBeSeenOver(map);
+        var northWestBlocked = !(shooterCell + GenAdj.AdjacentCells[6]).CanBeSeenOver(map);
+        var southWestBlocked = !(shooterCell + GenAdj.AdjacentCells[7]).CanBeSeenOver(map);
+
+        if (flightSource == shooterCell + IntVec3.East) {
+            if (!eastBlocked) {
+                if (northBlocked && !northEastBlocked && isEastSide) {
+                    return shooterCell + IntVec3.North;
+                }
+
+                if (southBlocked && !southEastBlocked && isWestSide) {
+                    return shooterCell + IntVec3.South;
+                }
+
+                if (isNorthSide && flightSource.GetCover(map) != null) {
+                    return flightSource;
+                }
+            }
+        } else if (flightSource == shooterCell + IntVec3.West) {
+            if (!westBlocked) {
+                if (northBlocked && !northWestBlocked && isEastSide) {
+                    return shooterCell + IntVec3.North;
+                }
+
+                if (southBlocked && !southWestBlocked && isWestSide) {
+                    return shooterCell + IntVec3.South;
+                }
+
+                if (isSouthSide && flightSource.GetCover(map) != null) {
+                    return flightSource;
+                }
+            }
+        } else if (flightSource == shooterCell + IntVec3.South) {
+            if (!southBlocked) {
+                if (westBlocked && !southWestBlocked && isSouthSide) {
+                    return shooterCell + IntVec3.West;
+                }
+
+                if (eastBlocked && !southEastBlocked && isNorthSide) {
+                    return shooterCell + IntVec3.East;
+                }
+
+                if (isWestSide && flightSource.GetCover(map) != null) {
+                    return flightSource;
+                }
+            }
+        } else if (flightSource == shooterCell + IntVec3.North) {
+            if (!northBlocked) {
+                if (westBlocked && !northWestBlocked && isSouthSide) {
+                    return shooterCell + IntVec3.West;
+                }
+
+                if (eastBlocked && !northEastBlocked && isNorthSide) {
+                    return shooterCell + IntVec3.East;
+                }
+
+                if (isEastSide && flightSource.GetCover(map) != null) {
+                    return flightSource;
+                }
+            }
+        }
+
+        return IntVec3.Invalid;
     }
 
     public static bool HasFriendlyPawnBlocker(Thing launcher, Map map, IntVec3 sourceCell, LocalTargetInfo usedTarget,
@@ -104,6 +211,10 @@ public static class ProjectileCoverUtility {
 
     public static bool TryInterceptCoverBetween(Projectile projectile, Vector3 lastExactPos, Vector3 newExactPos) {
         if (lastExactPos == newExactPos) {
+            return false;
+        }
+
+        if (RemapSegmentToLogicalFlightPath(projectile, ref lastExactPos, ref newExactPos)) {
             return false;
         }
 
@@ -183,6 +294,10 @@ public static class ProjectileCoverUtility {
         var hasCover = false;
 
         foreach (var thing in thingList) {
+            if (IsProtectedLeanSupportThing(projectile, cell, thing)) {
+                continue;
+            }
+
             var coverStrength = GetInterceptStrength(projectile, thing);
             if (coverStrength <= 0f) {
                 continue;
@@ -220,6 +335,23 @@ public static class ProjectileCoverUtility {
         return comp.CoverInterceptRoll;
     }
 
+    private static void ApplyPendingFlightSource(Projectile projectile) {
+        var comp = projectile.TryGetComp<CompProjectileStage>();
+        if (comp == null) {
+            return;
+        }
+
+        if (comp.HasPendingFlightSource) {
+            comp.SetFlightSource(comp.PendingFlightSource);
+            comp.ClearPendingFlightSource();
+            return;
+        }
+
+        if (!comp.HasFlightSource) {
+            comp.SetFlightSource(projectile.Position);
+        }
+    }
+
     private static void ApplyPendingFlightDestination(Projectile projectile) {
         var comp = projectile.TryGetComp<CompProjectileStage>();
         if (comp == null || !comp.HasPendingFlightDestination) {
@@ -232,11 +364,60 @@ public static class ProjectileCoverUtility {
         comp.ClearPendingFlightDestination();
     }
 
+    private static void ApplyPendingProtectedLeanSupportCell(Projectile projectile) {
+        var comp = projectile.TryGetComp<CompProjectileStage>();
+        if (comp == null || !comp.HasPendingProtectedLeanSupportCell) {
+            return;
+        }
+
+        comp.SetProtectedLeanSupportCell(comp.PendingProtectedLeanSupportCell);
+        comp.ClearPendingProtectedLeanSupportCell();
+    }
+
     private static IntVec3 GetTerminalFlightCell(Projectile projectile) {
         var comp = projectile.TryGetComp<CompProjectileStage>();
         return comp is { HasFlightDestination: true }
             ? comp.FlightDestination
             : projectile.usedTarget.Cell;
+    }
+
+    private static bool RemapSegmentToLogicalFlightPath(Projectile projectile, ref Vector3 lastExactPos,
+        ref Vector3 newExactPos) {
+        var comp = projectile.TryGetComp<CompProjectileStage>();
+        if (comp is not { HasFlightSource: true }) {
+            return false;
+        }
+
+        var visualOrigin = OriginRef(projectile);
+        var visualDestination = DestinationRef(projectile);
+        var visualVector = (visualDestination - visualOrigin).Yto0();
+        if (visualVector.sqrMagnitude <= 0.0001f) {
+            return true;
+        }
+
+        var logicalOrigin = comp.FlightSource.ToVector3Shifted();
+        logicalOrigin.y = visualOrigin.y;
+        var logicalVector = (visualDestination - logicalOrigin).Yto0();
+        if (logicalVector.sqrMagnitude <= 0.0001f) {
+            return true;
+        }
+
+        lastExactPos = RemapFlightPosition(lastExactPos, visualOrigin, visualVector, logicalOrigin, logicalVector);
+        newExactPos = RemapFlightPosition(newExactPos, visualOrigin, visualVector, logicalOrigin, logicalVector);
+        return lastExactPos == newExactPos;
+    }
+
+    private static Vector3 RemapFlightPosition(Vector3 visualPosition, Vector3 visualOrigin, Vector3 visualVector,
+        Vector3 logicalOrigin, Vector3 logicalVector) {
+        var denominator = visualVector.sqrMagnitude;
+        if (denominator <= 0.0001f) {
+            return logicalOrigin;
+        }
+
+        var progress = Mathf.Clamp01(Vector3.Dot((visualPosition - visualOrigin).Yto0(), visualVector) / denominator);
+        var logicalPosition = logicalOrigin + logicalVector * progress;
+        logicalPosition.y = visualPosition.y;
+        return logicalPosition;
     }
 
     private static float GetInterceptStrength(Projectile projectile, Thing thing) {
@@ -266,6 +447,17 @@ public static class ProjectileCoverUtility {
         }
 
         return Mathf.Clamp01(blockChance);
+    }
+
+    private static bool IsProtectedLeanSupportThing(Projectile projectile, IntVec3 cell, Thing thing) {
+        if (projectile.Map == null) {
+            return false;
+        }
+
+        var comp = projectile.TryGetComp<CompProjectileStage>();
+        return comp is { HasProtectedLeanSupportCell: true } &&
+               comp.ProtectedLeanSupportCell == cell &&
+               cell.GetCover(projectile.Map) == thing;
     }
 
     private static bool CellHasFriendlyPawnBlocker(Thing launcher, Map map, IntVec3 cell,

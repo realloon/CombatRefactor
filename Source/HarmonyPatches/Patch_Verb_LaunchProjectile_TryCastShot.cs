@@ -73,7 +73,8 @@ public static class Patch_Verb_LaunchProjectile_TryCastShot {
             ProjectileCoverUtility.ResolveProtectedLeanSupportCell(caster.Map, caster.Position, shootSource,
                 currentTarget);
 
-        if (__instance.verbProps.ForcedMissRadius > 0.5f) {
+        // Keep vanilla forced miss only for explosive projectiles until explosive scatter is refactored.
+        if (__instance.verbProps.CausesExplosion && __instance.verbProps.ForcedMissRadius > 0.5f) {
             var forcedMissRadius = __instance.verbProps.ForcedMissRadius;
             if (manningPawn is Pawn pawn && equipmentSource != null) {
                 forcedMissRadius *= __instance.verbProps.GetForceMissFactorFor(equipmentSource, pawn);

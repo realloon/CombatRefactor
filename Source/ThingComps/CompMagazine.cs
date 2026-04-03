@@ -44,7 +44,7 @@ public class CompMagazine : ThingComp, IEquippedGizmoProvider {
     }
 
     public override string CompInspectStringExtra() {
-        return $"弹匣: {RemainingShots} / {MagazineCapacity}";
+        return "CRTeam_MagazineStatus".Translate(RemainingShots, MagazineCapacity);
     }
 
     public IEnumerable<Gizmo> GetEquippedGizmos() {
@@ -58,8 +58,8 @@ public class CompMagazine : ThingComp, IEquippedGizmoProvider {
         }
 
         var reloadCommand = new Command_Action {
-            defaultLabel = $"装填 ({RemainingShots}/{MagazineCapacity})",
-            defaultDesc = $"装填当前武器的弹匣。\n耗时: {ReloadTicks.ToStringTicksToPeriod(shortForm: true)}",
+            defaultLabel = "CRTeam_ReloadLabel".Translate(RemainingShots, MagazineCapacity),
+            defaultDesc = "CRTeam_ReloadDesc".Translate(ReloadTicks.ToStringTicksToPeriod(shortForm: true)),
             icon = TexCommand.Attack,
             activateSound = SoundDefOf.Click,
             action = () => TryStartReload(pawn)
@@ -83,22 +83,22 @@ public class CompMagazine : ThingComp, IEquippedGizmoProvider {
 
     private bool CanReload(Pawn pawn, out string disabledReason) {
         if (!IsHeldBy(pawn)) {
-            disabledReason = "未装备当前武器";
+            disabledReason = "CRTeam_Disabled_NotEquippedCurrentWeapon".Translate();
             return false;
         }
 
         if (IsReloading(pawn)) {
-            disabledReason = "正在装填";
+            disabledReason = "CRTeam_Disabled_Reloading".Translate();
             return false;
         }
 
         if (!NeedsReload) {
-            disabledReason = "弹匣已满";
+            disabledReason = "CRTeam_Disabled_MagazineFull".Translate();
             return false;
         }
 
         if (!pawn.health.capacities.CapableOf(PawnCapacityDefOf.Manipulation)) {
-            disabledReason = "无法操作武器";
+            disabledReason = "CRTeam_Disabled_CannotManipulateWeapon".Translate();
             return false;
         }
 

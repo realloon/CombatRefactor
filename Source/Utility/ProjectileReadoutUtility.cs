@@ -69,15 +69,15 @@ public static class ProjectileReadoutUtility {
         var stageTwo = BuildStageTwoReadout(verb, target, shootLine);
 
         stringBuilder.AppendLine();
-        stringBuilder.AppendLine("Shooting Accuracy: " + stageOne.FinalAccuracy.ToStringPercent());
-        stringBuilder.AppendLine("   Weapon Accuracy: " + stageOne.WeaponAccuracy.ToStringPercent());
-        stringBuilder.AppendLine("   Shooter Factor: " + stageOne.ShooterAccuracy.ToStringPercent());
-        stringBuilder.AppendLine("   Burst Factor: " + stageOne.BurstFactor.ToStringPercent());
+        stringBuilder.AppendLine("CRTeam_Readout_ShootingAccuracy".Translate(stageOne.FinalAccuracy.ToStringPercent()));
+        stringBuilder.AppendLine("CRTeam_Readout_WeaponAccuracy".Translate(stageOne.WeaponAccuracy.ToStringPercent()));
+        stringBuilder.AppendLine("CRTeam_Readout_ShooterFactor".Translate(stageOne.ShooterAccuracy.ToStringPercent()));
+        stringBuilder.AppendLine("CRTeam_Readout_BurstFactor".Translate(stageOne.BurstFactor.ToStringPercent()));
 
-        stringBuilder.AppendLine("Path Clearance: " + stageTwo.PassChance.ToStringPercent());
+        stringBuilder.AppendLine("CRTeam_Readout_PathClearance".Translate(stageTwo.PassChance.ToStringPercent()));
         if (stageTwo.StrongestBlocker != null) {
-            stringBuilder.AppendLine("   Strongest Blocker: " + stageTwo.StrongestBlocker.LabelCap + " (" +
-                                     stageTwo.StrongestIntercept.ToStringPercent() + ")");
+            stringBuilder.AppendLine("CRTeam_Readout_StrongestBlocker"
+                .Translate(stageTwo.StrongestBlocker.LabelCap, stageTwo.StrongestIntercept.ToStringPercent()));
         }
 
         if (target.Thing is Pawn pawn) {
@@ -87,10 +87,10 @@ public static class ProjectileReadoutUtility {
             var leanFactor = ProjectileCoverUtility.GetDirectTargetLeanFactor(usesLeanExposure);
             var hitChance = ProjectileCoverUtility.GetDirectTargetHitChance(pawn, usesLeanExposure);
 
-            stringBuilder.AppendLine("Target Exposure: " + hitChance.ToStringPercent());
-            stringBuilder.AppendLine("   Body Size: " + bodySizeFactor.ToStringPercent());
-            stringBuilder.AppendLine("   Posture: " + postureFactor.ToStringPercent());
-            stringBuilder.AppendLine("   Lean Exposure: " + leanFactor.ToStringPercent());
+            stringBuilder.AppendLine("CRTeam_Readout_TargetExposure".Translate(hitChance.ToStringPercent()));
+            stringBuilder.AppendLine("CRTeam_Readout_BodySize".Translate(bodySizeFactor.ToStringPercent()));
+            stringBuilder.AppendLine("CRTeam_Readout_Posture".Translate(postureFactor.ToStringPercent()));
+            stringBuilder.AppendLine("CRTeam_Readout_LeanExposure".Translate(leanFactor.ToStringPercent()));
         }
 
         return stringBuilder.ToString();

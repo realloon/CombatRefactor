@@ -15,9 +15,11 @@ public static class Patch_CompEquippable_GetVerbsCommands {
 
         foreach (var command in original) {
             if (magazine != null && command is Command_VerbTarget) {
-                command.defaultDescPostfix += $"\n\n弹匣: {magazine.RemainingShots} / {magazine.MagazineCapacity}";
+                command.defaultDescPostfix += "\n\n" +
+                                              "CRTeam_MagazineStatus".Translate(magazine.RemainingShots,
+                                                  magazine.MagazineCapacity);
                 if (magazine.Empty) {
-                    command.Disable("弹匣为空");
+                    command.Disable("CRTeam_Disabled_MagazineEmpty".Translate());
                 }
             }
 

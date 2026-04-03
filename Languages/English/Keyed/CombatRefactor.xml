@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <CRTeam_MagazineStatus>Magazine: {0} / {1}</CRTeam_MagazineStatus>
+  <CRTeam_ReloadLabel>Reload ({0}/{1})</CRTeam_ReloadLabel>
+  <CRTeam_ReloadDesc>Reload this weapon's magazine.\nTime: {0}</CRTeam_ReloadDesc>
+  <CRTeam_Disabled_NotEquippedCurrentWeapon>Current weapon is not equipped</CRTeam_Disabled_NotEquippedCurrentWeapon>
+  <CRTeam_Disabled_Reloading>Reloading</CRTeam_Disabled_Reloading>
+  <CRTeam_Disabled_MagazineFull>Magazine is full</CRTeam_Disabled_MagazineFull>
+  <CRTeam_Disabled_CannotManipulateWeapon>Cannot operate weapon</CRTeam_Disabled_CannotManipulateWeapon>
+  <CRTeam_Disabled_MagazineEmpty>Magazine is empty</CRTeam_Disabled_MagazineEmpty>
+  <CRTeam_SwitchFireModeDesc>Switch fire mode</CRTeam_SwitchFireModeDesc>
+  <CRTeam_Disabled_SwitchingFireMode>Switching fire mode</CRTeam_Disabled_SwitchingFireMode>
+  <CRTeam_Disabled_UnsupportedFireMode>This weapon does not support that fire mode</CRTeam_Disabled_UnsupportedFireMode>
+  <CRTeam_Disabled_AlreadyCurrentFireMode>Already using this fire mode</CRTeam_Disabled_AlreadyCurrentFireMode>
+  <CRTeam_FireModeCurrent>{0} (Current)</CRTeam_FireModeCurrent>
+  <CRTeam_FireMode_Single>Single</CRTeam_FireMode_Single>
+  <CRTeam_FireMode_Burst>Burst</CRTeam_FireMode_Burst>
+  <CRTeam_FireMode_Auto>Auto</CRTeam_FireMode_Auto>
+  <CRTeam_Readout_ShootingAccuracy>Shooting Accuracy: {0}</CRTeam_Readout_ShootingAccuracy>
+  <CRTeam_Readout_WeaponAccuracy>   Weapon Accuracy: {0}</CRTeam_Readout_WeaponAccuracy>
+  <CRTeam_Readout_ShooterFactor>   Shooter Factor: {0}</CRTeam_Readout_ShooterFactor>
+  <CRTeam_Readout_BurstFactor>   Burst Factor: {0}</CRTeam_Readout_BurstFactor>
+  <CRTeam_Readout_PathClearance>Path Clearance: {0}</CRTeam_Readout_PathClearance>
+  <CRTeam_Readout_StrongestBlocker>   Strongest Blocker: {0} ({1})</CRTeam_Readout_StrongestBlocker>
+  <CRTeam_Readout_TargetExposure>Target Exposure: {0}</CRTeam_Readout_TargetExposure>
+  <CRTeam_Readout_BodySize>   Body Size: {0}</CRTeam_Readout_BodySize>
+  <CRTeam_Readout_Posture>   Posture: {0}</CRTeam_Readout_Posture>
+  <CRTeam_Readout_LeanExposure>   Lean Exposure: {0}</CRTeam_Readout_LeanExposure>
+</LanguageData>

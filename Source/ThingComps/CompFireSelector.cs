@@ -39,7 +39,7 @@ public class CompFireSelector : ThingComp, IEquippedGizmoProvider {
 
         var switchFireModeCommand = new Command_Action {
             defaultLabel = GetModeLabel(_currentMode),
-            defaultDesc = "Switch shot mode",
+            defaultDesc = "CRTeam_SwitchFireModeDesc".Translate(),
             icon = TexCommand.Attack,
             activateSound = SoundDefOf.Click,
             action = () => ShowSwitchFireModeMenu(pawn)
@@ -63,17 +63,17 @@ public class CompFireSelector : ThingComp, IEquippedGizmoProvider {
 
     private bool CanOpenSwitchFireModeMenu(Pawn pawn, out string disabledReason) {
         if (!IsHeldBy(pawn)) {
-            disabledReason = "未装备当前武器";
+            disabledReason = "CRTeam_Disabled_NotEquippedCurrentWeapon".Translate();
             return false;
         }
 
         if (IsSwitchingFireMode(pawn)) {
-            disabledReason = "正在调整快慢机";
+            disabledReason = "CRTeam_Disabled_SwitchingFireMode".Translate();
             return false;
         }
 
         if (!pawn.health.capacities.CapableOf(PawnCapacityDefOf.Manipulation)) {
-            disabledReason = "无法操作武器";
+            disabledReason = "CRTeam_Disabled_CannotManipulateWeapon".Translate();
             return false;
         }
 
@@ -110,12 +110,12 @@ public class CompFireSelector : ThingComp, IEquippedGizmoProvider {
         }
 
         if (!SupportsMode(targetMode)) {
-            disabledReason = "当前武器不支持该模式";
+            disabledReason = "CRTeam_Disabled_UnsupportedFireMode".Translate();
             return false;
         }
 
         if (_currentMode == targetMode) {
-            disabledReason = "已经是该模式";
+            disabledReason = "CRTeam_Disabled_AlreadyCurrentFireMode".Translate();
             return false;
         }
 
@@ -138,7 +138,7 @@ public class CompFireSelector : ThingComp, IEquippedGizmoProvider {
 
         var options = GetSupportedModes()
             .Select(mode => mode == _currentMode
-                ? new FloatMenuOption($"{GetModeLabel(mode)} (当前)", null)
+                ? new FloatMenuOption("CRTeam_FireModeCurrent".Translate(GetModeLabel(mode)), null)
                 : new FloatMenuOption(GetModeLabel(mode), () => TryStartSwitchFireModeJob(pawn, mode)))
             .ToList();
 
@@ -185,9 +185,9 @@ public class CompFireSelector : ThingComp, IEquippedGizmoProvider {
     }
 
     private static string GetModeLabel(FireMode mode) => mode switch {
-        FireMode.Single => "Single",
-        FireMode.Burst => "Burst",
-        FireMode.Auto => "Auto",
+        FireMode.Single => "CRTeam_FireMode_Single".Translate(),
+        FireMode.Burst => "CRTeam_FireMode_Burst".Translate(),
+        FireMode.Auto => "CRTeam_FireMode_Auto".Translate(),
         _ => mode.ToString()
     };
 }

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <CRTeam_MagazineStatus>弹匣: {0} / {1}</CRTeam_MagazineStatus>
+  <CRTeam_ReloadLabel>装填 ({0}/{1})</CRTeam_ReloadLabel>
+  <CRTeam_ReloadDesc>装填当前武器的弹匣。\n耗时: {0}</CRTeam_ReloadDesc>
+  <CRTeam_Disabled_NotEquippedCurrentWeapon>未装备当前武器</CRTeam_Disabled_NotEquippedCurrentWeapon>
+  <CRTeam_Disabled_Reloading>正在装填</CRTeam_Disabled_Reloading>
+  <CRTeam_Disabled_MagazineFull>弹匣已满</CRTeam_Disabled_MagazineFull>
+  <CRTeam_Disabled_CannotManipulateWeapon>无法操作武器</CRTeam_Disabled_CannotManipulateWeapon>
+  <CRTeam_Disabled_MagazineEmpty>弹匣为空</CRTeam_Disabled_MagazineEmpty>
+  <CRTeam_SwitchFireModeDesc>切换开火模式</CRTeam_SwitchFireModeDesc>
+  <CRTeam_Disabled_SwitchingFireMode>正在调整快慢机</CRTeam_Disabled_SwitchingFireMode>
+  <CRTeam_Disabled_UnsupportedFireMode>当前武器不支持该模式</CRTeam_Disabled_UnsupportedFireMode>
+  <CRTeam_Disabled_AlreadyCurrentFireMode>已经是该模式</CRTeam_Disabled_AlreadyCurrentFireMode>
+  <CRTeam_FireModeCurrent>{0}（当前）</CRTeam_FireModeCurrent>
+  <CRTeam_FireMode_Single>单发</CRTeam_FireMode_Single>
+  <CRTeam_FireMode_Burst>点射</CRTeam_FireMode_Burst>
+  <CRTeam_FireMode_Auto>连发</CRTeam_FireMode_Auto>
+  <CRTeam_Readout_ShootingAccuracy>射击精度: {0}</CRTeam_Readout_ShootingAccuracy>
+  <CRTeam_Readout_WeaponAccuracy>   武器精度: {0}</CRTeam_Readout_WeaponAccuracy>
+  <CRTeam_Readout_ShooterFactor>   射手系数: {0}</CRTeam_Readout_ShooterFactor>
+  <CRTeam_Readout_BurstFactor>   连发系数: {0}</CRTeam_Readout_BurstFactor>
+  <CRTeam_Readout_PathClearance>路径通畅率: {0}</CRTeam_Readout_PathClearance>
+  <CRTeam_Readout_StrongestBlocker>   最强阻挡物: {0} ({1})</CRTeam_Readout_StrongestBlocker>
+  <CRTeam_Readout_TargetExposure>目标暴露度: {0}</CRTeam_Readout_TargetExposure>
+  <CRTeam_Readout_BodySize>   体型: {0}</CRTeam_Readout_BodySize>
+  <CRTeam_Readout_Posture>   姿态: {0}</CRTeam_Readout_Posture>
+  <CRTeam_Readout_LeanExposure>   探身暴露: {0}</CRTeam_Readout_LeanExposure>
+</LanguageData>

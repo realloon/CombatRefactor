@@ -6,7 +6,7 @@ namespace CombatRefactor.Utility;
 
 public static class PerformanceProfiler {
     #if DEBUG
-    private const int ReportIntervalTicks = 900;
+    private const int ReportIntervalTicks = 600;
     private const int MaxEntriesPerReport = 8;
     private const double MinimumTotalMillisecondsToReport = 0.05d;
     private static readonly Dictionary<string, Measurement> Measurements = [];
@@ -69,61 +69,34 @@ public static class PerformanceProfiler {
             .OrderByDescending(pair => pair.Value.SelfTicks)
             .ThenByDescending(pair => pair.Value.TotalTicks)
             .ToList();
-        var totalMeasuredTicks = sortedMeasurements.Sum(pair => pair.Value.TotalTicks);
-        var totalMeasuredSelfTicks = sortedMeasurements.Sum(pair => pair.Value.SelfTicks);
         var eligibleMeasurements = sortedMeasurements
-            .Where(pair => TicksToMilliseconds(pair.Value.SelfTicks) >= MinimumTotalMillisecondsToReport ||
-                           TicksToMilliseconds(pair.Value.TotalTicks) >= MinimumTotalMillisecondsToReport)
+            .Where(pair => TicksToMilliseconds(pair.Value.SelfTicks) >= MinimumTotalMillisecondsToReport)
             .ToList();
         var reportedEntryCount = 0;
 
         ReportBuilder.Clear();
-        ReportBuilder.Append("[CombatRefactor] DEBUG profiler ");
+        ReportBuilder.Append("[CRProfiler] ");
         ReportBuilder.Append("tick=");
         ReportBuilder.Append(currentTick);
-        ReportBuilder.Append(", window=");
+        ReportBuilder.Append(" window=");
         ReportBuilder.Append(ReportIntervalTicks);
-        ReportBuilder.Append(", total=");
-        ReportBuilder.Append(TicksToMilliseconds(totalMeasuredTicks).ToString("F3"));
-        ReportBuilder.Append(" ms");
-        ReportBuilder.Append(", self=");
-        ReportBuilder.Append(TicksToMilliseconds(totalMeasuredSelfTicks).ToString("F3"));
-        ReportBuilder.AppendLine(" ms");
+        ReportBuilder.AppendLine();
 
         foreach (var (name, measurement) in eligibleMeasurements) {
             var selfMilliseconds = TicksToMilliseconds(measurement.SelfTicks);
-            var totalMilliseconds = TicksToMilliseconds(measurement.TotalTicks);
-            var averageMilliseconds = measurement.CallCount > 0
-                ? selfMilliseconds / measurement.CallCount
-                : 0d;
             var maxSelfMilliseconds = TicksToMilliseconds(measurement.MaxSelfTicks);
-            var maxMilliseconds = TicksToMilliseconds(measurement.MaxTicks);
-            var share = totalMeasuredSelfTicks > 0
-                ? measurement.SelfTicks * 100d / totalMeasuredSelfTicks
-                : 0d;
 
             ReportBuilder.Append(" - ");
             ReportBuilder.Append(name);
-            ReportBuilder.Append(": ");
-            ReportBuilder.Append(share.ToString("F1"));
-            ReportBuilder.Append("%");
-            ReportBuilder.Append(": calls=");
-            ReportBuilder.Append(measurement.CallCount);
-            ReportBuilder.Append(", self=");
+            ReportBuilder.Append(", sumSelf=");
             ReportBuilder.Append(selfMilliseconds.ToString("F3"));
             ReportBuilder.Append(" ms");
-            ReportBuilder.Append(", total=");
-            ReportBuilder.Append(totalMilliseconds.ToString("F3"));
-            ReportBuilder.Append(" ms");
-            ReportBuilder.Append(", avg=");
-            ReportBuilder.Append(averageMilliseconds.ToString("F4"));
-            ReportBuilder.Append(" ms");
-            ReportBuilder.Append(", maxSelf=");
+            ReportBuilder.Append(", peakSelf=");
             ReportBuilder.Append(maxSelfMilliseconds.ToString("F4"));
             ReportBuilder.Append(" ms");
-            ReportBuilder.Append(", max=");
-            ReportBuilder.Append(maxMilliseconds.ToString("F4"));
-            ReportBuilder.AppendLine(" ms");
+            ReportBuilder.Append(", calls=");
+            ReportBuilder.Append(measurement.CallCount);
+            ReportBuilder.AppendLine();
 
             reportedEntryCount++;
             if (reportedEntryCount >= MaxEntriesPerReport) {
@@ -135,7 +108,7 @@ public static class PerformanceProfiler {
         if (hiddenEntryCount > 0) {
             ReportBuilder.Append(" - ");
             ReportBuilder.Append(hiddenEntryCount);
-            ReportBuilder.AppendLine(" more entries omitted");
+            ReportBuilder.AppendLine(" more");
         }
 
         EmitLogMessage(ReportBuilder.ToString().TrimEnd());

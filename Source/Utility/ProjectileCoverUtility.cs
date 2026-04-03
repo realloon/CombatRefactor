@@ -36,11 +36,11 @@ public static class ProjectileCoverUtility {
             if (def.projectile == null) continue;
 
             def.comps ??= [];
-            if (def.comps.OfType<CompProperties_ProjectileStage>().Any()) {
+            if (def.comps.Any(props => props.compClass == typeof(CompProjectileStage))) {
                 continue;
             }
 
-            def.comps.Add(new CompProperties_ProjectileStage());
+            def.comps.Add(new CompProperties(typeof(CompProjectileStage)));
         }
     }
 

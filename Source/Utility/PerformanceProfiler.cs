@@ -30,17 +30,15 @@ public static class PerformanceProfiler {
         return new Scope(scopeState);
     }
 
-    private static void RecordMeasurement(string name, long elapsedTicks, long selfTicks) {
+    private static void RecordMeasurement(string name, long selfTicks) {
         if (!Measurements.TryGetValue(name, out var measurement)) {
             measurement = new Measurement();
             Measurements.Add(name, measurement);
         }
 
         measurement.SelfTicks += selfTicks;
-        measurement.TotalTicks += elapsedTicks;
         measurement.CallCount++;
         measurement.MaxSelfTicks = Math.Max(measurement.MaxSelfTicks, selfTicks);
-        measurement.MaxTicks = Math.Max(measurement.MaxTicks, elapsedTicks);
 
         TryReport();
     }
@@ -67,7 +65,7 @@ public static class PerformanceProfiler {
 
         var sortedMeasurements = Measurements
             .OrderByDescending(pair => pair.Value.SelfTicks)
-            .ThenByDescending(pair => pair.Value.TotalTicks)
+            .ThenByDescending(pair => pair.Value.MaxSelfTicks)
             .ToList();
         var eligibleMeasurements = sortedMeasurements
             .Where(pair => TicksToMilliseconds(pair.Value.SelfTicks) >= MinimumTotalMillisecondsToReport)
@@ -129,9 +127,7 @@ public static class PerformanceProfiler {
     private sealed class Measurement {
         public int CallCount;
         public long MaxSelfTicks;
-        public long MaxTicks;
         public long SelfTicks;
-        public long TotalTicks;
     }
 
     internal sealed class ScopeState(string name, long startTimestamp, ScopeState? parent) {
@@ -168,7 +164,7 @@ public static class PerformanceProfiler {
                 _state.Parent.ChildTicks += elapsedTicks;
             }
 
-            RecordMeasurement(_state.Name, elapsedTicks, selfTicks);
+            RecordMeasurement(_state.Name, selfTicks);
             #endif
         }
     }

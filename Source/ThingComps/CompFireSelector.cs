@@ -159,14 +159,12 @@ public class CompFireSelector : ThingComp, IEquippedGizmoProvider {
         return parent.def.Verbs != null && Enumerable.Any(parent.def.Verbs, verb => verb.burstShotCount > 1);
     }
 
-    public bool SupportsMode(FireMode mode) {
-        return mode switch {
-            FireMode.Single => true,
-            FireMode.Burst => HasBurstMode(),
-            FireMode.Auto => true,
-            _ => false
-        };
-    }
+    public bool SupportsMode(FireMode mode) => mode switch {
+        FireMode.Single => true,
+        FireMode.Burst => HasBurstMode(),
+        FireMode.Auto => true,
+        _ => false
+    };
 
     private int ResolveAutoBurstShotCount(int burstShotCount) {
         return Props.autoBurstShotCount > 0

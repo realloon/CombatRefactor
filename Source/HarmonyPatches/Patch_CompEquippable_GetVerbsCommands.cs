@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using HarmonyLib;
 
 // ReSharper disable InconsistentNaming
@@ -6,6 +7,7 @@ namespace CombatRefactor.HarmonyPatches;
 
 [HarmonyPatch(typeof(CompEquippable), nameof(CompEquippable.GetVerbsCommands))]
 public static class Patch_CompEquippable_GetVerbsCommands {
+    [UsedImplicitly]
     public static void Postfix(CompEquippable __instance, ref IEnumerable<Command> __result) {
         __result = DecorateCommands(__instance, __result);
     }

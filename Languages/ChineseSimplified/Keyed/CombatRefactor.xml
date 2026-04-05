@@ -14,8 +14,8 @@
   <CRTeam_Disabled_AlreadyCurrentFireMode>已经是该模式</CRTeam_Disabled_AlreadyCurrentFireMode>
   <CRTeam_FireModeCurrent>{0}（当前）</CRTeam_FireModeCurrent>
   <CRTeam_FireMode_Single>单发</CRTeam_FireMode_Single>
-  <CRTeam_FireMode_Burst>点射</CRTeam_FireMode_Burst>
-  <CRTeam_FireMode_Auto>连发</CRTeam_FireMode_Auto>
+  <CRTeam_FireMode_Burst>短点射</CRTeam_FireMode_Burst>
+  <CRTeam_FireMode_Auto>全自动</CRTeam_FireMode_Auto>
   <CRTeam_Readout_ShootingAccuracy>射击精度: {0}</CRTeam_Readout_ShootingAccuracy>
   <CRTeam_Readout_WeaponAccuracy>   武器精度: {0}</CRTeam_Readout_WeaponAccuracy>
   <CRTeam_Readout_ShooterFactor>   射手系数: {0}</CRTeam_Readout_ShooterFactor>

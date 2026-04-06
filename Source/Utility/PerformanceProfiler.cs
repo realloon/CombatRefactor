@@ -137,9 +137,8 @@ public static class PerformanceProfiler {
         public long StartTimestamp { get; } = startTimestamp;
     }
     #else
-    public static Scope Measure(string name) {
-        return default;
-    }
+    public static Scope Measure(string name) => default;
+
     #endif
 
     public readonly struct Scope : IDisposable {
@@ -153,9 +152,7 @@ public static class PerformanceProfiler {
 
         public void Dispose() {
             #if DEBUG
-            if (_state == null) {
-                return;
-            }
+            if (_state == null) return;
 
             var elapsedTicks = Stopwatch.GetTimestamp() - _state.StartTimestamp;
             var selfTicks = Math.Max(0L, elapsedTicks - _state.ChildTicks);

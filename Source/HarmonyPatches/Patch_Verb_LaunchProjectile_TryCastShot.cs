@@ -161,7 +161,7 @@ public static class Patch_Verb_LaunchProjectile_TryCastShot {
         return false;
 
         Projectile SpawnPreparedProjectile() {
-            using var measure = PerformanceProfiler.Measure("Patch.Verb_LaunchProjectile.SpawnPreparedProjectile");
+            using var __ = PerformanceProfiler.Measure("Patch.Verb_LaunchProjectile.SpawnPreparedProjectile");
 
             var projectile = (Projectile)GenSpawn.Spawn(projectileDef, shootSource, caster.Map);
             ProjectileCoverUtility.OverrideFlightSource(projectile, shootSource);

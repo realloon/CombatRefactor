@@ -229,17 +229,36 @@ public static class ProjectileCoverUtility {
             return false;
         }
 
-        if (!CanHit(projectile, pawn)) {
+        bool canHit;
+        using (PerformanceProfiler.Measure("Cover.TryHandleDirectTargetImpact.CanHit")) {
+            canHit = CanHit(projectile, pawn);
+        }
+
+        if (!canHit) {
             return false;
         }
 
-        var hitChance = CalculateDirectHitChance(projectile, pawn);
+        float hitChance;
+        using (PerformanceProfiler.Measure("Cover.TryHandleDirectTargetImpact.CalculateDirectHitChance")) {
+            hitChance = CalculateDirectHitChance(projectile, pawn);
+        }
+
         if (Rand.Chance(hitChance)) {
-            ThrowDebugText(projectile, $"hit\n{hitChance.ToStringPercent()}", projectile.Position);
-            Impact(projectile, pawn, false);
+            using (PerformanceProfiler.Measure("Cover.TryHandleDirectTargetImpact.ThrowDebugText")) {
+                ThrowDebugText(projectile, $"hit\n{hitChance.ToStringPercent()}", projectile.Position);
+            }
+
+            using (PerformanceProfiler.Measure("Cover.TryHandleDirectTargetImpact.Impact")) {
+                Impact(projectile, pawn, false);
+            }
         } else {
-            ThrowDebugText(projectile, $"miss\n{hitChance.ToStringPercent()}", projectile.Position);
-            Impact(projectile, null!, false);
+            using (PerformanceProfiler.Measure("Cover.TryHandleDirectTargetImpact.ThrowDebugText")) {
+                ThrowDebugText(projectile, $"miss\n{hitChance.ToStringPercent()}", projectile.Position);
+            }
+
+            using (PerformanceProfiler.Measure("Cover.TryHandleDirectTargetImpact.Impact")) {
+                Impact(projectile, null!, false);
+            }
         }
 
         return true;
@@ -265,12 +284,25 @@ public static class ProjectileCoverUtility {
     private static bool TryInterceptCoverAtCell(Projectile projectile, IntVec3 cell) {
         using var _ = PerformanceProfiler.Measure("Cover.TryInterceptCoverAtCell");
 
-        if (projectile.Map == null || GetTerminalFlightCell(projectile) == cell) {
+        IntVec3 terminalFlightCell;
+        using (PerformanceProfiler.Measure("Cover.TryInterceptCoverAtCell.GetTerminalFlightCell")) {
+            terminalFlightCell = GetTerminalFlightCell(projectile);
+        }
+
+        if (projectile.Map == null || terminalFlightCell == cell) {
             return false;
         }
 
-        var coverInterceptRoll = GetCoverInterceptRoll(projectile);
-        var thingList = cell.GetThingList(projectile.Map);
+        float coverInterceptRoll;
+        using (PerformanceProfiler.Measure("Cover.TryInterceptCoverAtCell.GetCoverInterceptRoll")) {
+            coverInterceptRoll = GetCoverInterceptRoll(projectile);
+        }
+
+        List<Thing> thingList;
+        using (PerformanceProfiler.Measure("Cover.TryInterceptCoverAtCell.GetThingList")) {
+            thingList = cell.GetThingList(projectile.Map);
+        }
+
         var hasCover = false;
 
         foreach (var thing in thingList) {
@@ -285,18 +317,29 @@ public static class ProjectileCoverUtility {
 
             hasCover = true;
             if (coverStrength <= coverInterceptRoll) {
-                ThrowDebugText(projectile, coverStrength.ToStringPercent(), cell);
+                using (PerformanceProfiler.Measure("Cover.TryInterceptCoverAtCell.ThrowDebugText")) {
+                    ThrowDebugText(projectile, coverStrength.ToStringPercent(), cell);
+                }
+
                 continue;
             }
 
             TargetCoverDefRef(projectile) = thing.def;
-            ThrowDebugText(projectile, $"cover\n{coverStrength.ToStringPercent()}", cell);
-            Impact(projectile, thing, false);
+            using (PerformanceProfiler.Measure("Cover.TryInterceptCoverAtCell.ThrowDebugText")) {
+                ThrowDebugText(projectile, $"cover\n{coverStrength.ToStringPercent()}", cell);
+            }
+
+            using (PerformanceProfiler.Measure("Cover.TryInterceptCoverAtCell.Impact")) {
+                Impact(projectile, thing, false);
+            }
+
             return true;
         }
 
         if (!hasCover) {
-            ThrowDebugText(projectile, "o", cell);
+            using (PerformanceProfiler.Measure("Cover.TryInterceptCoverAtCell.ThrowDebugText")) {
+                ThrowDebugText(projectile, "o", cell);
+            }
         }
 
         return false;

@@ -21,7 +21,9 @@ public static class PerformanceProfiler {
     private static readonly Action PostMessage =
         AccessTools.MethodDelegate<Action>(AccessTools.Method(typeof(Log), "PostMessage"));
 
-    [ThreadStatic] private static ScopeState? _currentScope;
+    [ThreadStatic]
+    private static ScopeState? _currentScope;
+
     private static int _nextReportTick = ReportIntervalTicks;
 
     public static Scope Measure(string name) {
@@ -44,24 +46,16 @@ public static class PerformanceProfiler {
     }
 
     private static void TryReport() {
-        if (!Prefs.DevMode) {
-            return;
-        }
+        if (!Prefs.DevMode) return;
 
         var tickManager = Find.TickManager;
-        if (tickManager == null) {
-            return;
-        }
+        if (tickManager == null) return;
 
         var currentTick = tickManager.TicksGame;
-        if (currentTick < _nextReportTick) {
-            return;
-        }
+        if (currentTick < _nextReportTick) return;
 
         _nextReportTick = currentTick + ReportIntervalTicks;
-        if (Measurements.Count == 0) {
-            return;
-        }
+        if (Measurements.Count == 0) return;
 
         var sortedMeasurements = Measurements
             .OrderByDescending(pair => pair.Value.SelfTicks)
@@ -157,9 +151,7 @@ public static class PerformanceProfiler {
             var elapsedTicks = Stopwatch.GetTimestamp() - _state.StartTimestamp;
             var selfTicks = Math.Max(0L, elapsedTicks - _state.ChildTicks);
             _currentScope = _state.Parent;
-            if (_state.Parent != null) {
-                _state.Parent.ChildTicks += elapsedTicks;
-            }
+            _state.Parent?.ChildTicks += elapsedTicks;
 
             RecordMeasurement(_state.Name, selfTicks);
             #endif

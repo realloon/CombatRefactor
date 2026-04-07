@@ -8,7 +8,9 @@ public static class ProjectileSpreadVisualizationUtility {
     private const float LineWidth = 0.08f;
 
     public static void DrawSpreadBounds(Verb_LaunchProjectile verb, LocalTargetInfo target) {
+        #if DEBUG
         using var _ = PerformanceProfiler.Measure("Spread.DrawSpreadBounds");
+        #endif
 
         if (verb.Caster == null || !target.IsValid || verb.Caster.Map == null) {
             return;
@@ -20,10 +22,9 @@ public static class ProjectileSpreadVisualizationUtility {
             return;
         }
 
-        var maximumSpreadAngle = ProjectileAccuracyUtility.GetMaximumSpreadAngle(ProjectileAccuracyUtility.GetFinalAccuracy(verb));
-        if (maximumSpreadAngle <= 0f) {
-            return;
-        }
+        var maximumSpreadAngle = ProjectileAccuracyUtility
+            .GetMaximumSpreadAngle(ProjectileAccuracyUtility.GetFinalAccuracy(verb));
+        if (maximumSpreadAngle <= 0f) return;
 
         DrawDashedRay(source, targetVector.RotatedBy(-maximumSpreadAngle), SimpleColor.White);
         DrawDashedRay(source, targetVector.RotatedBy(maximumSpreadAngle), SimpleColor.White);
@@ -31,9 +32,7 @@ public static class ProjectileSpreadVisualizationUtility {
 
     private static void DrawDashedRay(Vector3 source, Vector3 ray, SimpleColor color) {
         var rayLength = ray.MagnitudeHorizontal();
-        if (rayLength <= 0.0001f) {
-            return;
-        }
+        if (rayLength <= 0.0001f) return;
 
         var direction = ray / rayLength;
         var distance = 0f;

@@ -62,7 +62,9 @@ public static class ProjectileAccuracyUtility {
     }
 
     public static float GetFinalAccuracy(Verb_LaunchProjectile verb) {
+        #if DEBUG
         using var _ = PerformanceProfiler.Measure("Accuracy.GetFinalAccuracy");
+        #endif
 
         return CalculateFinalAccuracy(verb);
     }

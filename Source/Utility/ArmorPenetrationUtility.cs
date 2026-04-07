@@ -21,7 +21,9 @@ public static class ArmorPenetrationUtility {
 
     public static float GetPostArmorDamage(Pawn pawn, float amount, float armorPenetration, BodyPartRecord part,
         ref DamageDef damageDef, out bool deflectedByMetalArmor, out bool diminishedByMetalArmor) {
+        #if DEBUG
         using var _ = PerformanceProfiler.Measure("Armor.GetPostArmorDamage");
+        #endif
 
         deflectedByMetalArmor = false;
         diminishedByMetalArmor = false;

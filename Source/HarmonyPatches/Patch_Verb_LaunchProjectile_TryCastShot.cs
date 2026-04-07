@@ -31,7 +31,9 @@ public static class Patch_Verb_LaunchProjectile_TryCastShot {
 
     [UsedImplicitly]
     public static bool Prefix(Verb_LaunchProjectile __instance, ref bool __result) {
+        #if DEBUG
         using var _ = PerformanceProfiler.Measure("Patch.Verb_LaunchProjectile.TryCastShot");
+        #endif
 
         var currentTarget = __instance.CurrentTarget;
         var caster = __instance.caster;
@@ -161,7 +163,9 @@ public static class Patch_Verb_LaunchProjectile_TryCastShot {
         return false;
 
         Projectile SpawnPreparedProjectile() {
+            #if DEBUG
             using var __ = PerformanceProfiler.Measure("Patch.Verb_LaunchProjectile.SpawnPreparedProjectile");
+            #endif
 
             var projectile = (Projectile)GenSpawn.Spawn(projectileDef, shootSource, caster.Map);
             ProjectileCoverUtility.OverrideFlightSource(projectile, shootSource);

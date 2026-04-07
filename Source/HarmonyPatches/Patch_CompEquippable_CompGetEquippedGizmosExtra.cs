@@ -14,7 +14,9 @@ public static class Patch_CompEquippable_CompGetEquippedGizmosExtra {
     }
 
     private static IEnumerable<Gizmo> AppendEquippedGizmos(IEnumerable<Gizmo> original, CompEquippable compEquippable) {
+        #if DEBUG
         using var _ = PerformanceProfiler.Measure("Patch.CompEquippable.CompGetEquippedGizmosExtra");
+        #endif
 
         foreach (var gizmo in original) {
             yield return gizmo;

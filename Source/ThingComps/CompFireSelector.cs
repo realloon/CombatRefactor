@@ -18,24 +18,19 @@ public class CompFireSelector : ThingComp, IEquippedGizmoProvider {
         Scribe_Values.Look(ref _currentMode, "currentMode", GetDefaultMode());
     }
 
-    public int GetBurstShotCountFor(int originalBurstShotCount) {
-        return _currentMode switch {
-            FireMode.Single => 1,
-            FireMode.Burst => originalBurstShotCount,
-            FireMode.Auto => ResolveAutoBurstShotCount(originalBurstShotCount),
-            _ => originalBurstShotCount
-        };
-    }
+    public int GetBurstShotCountFor(int originalBurstShotCount) => _currentMode switch {
+        FireMode.Single => 1,
+        FireMode.Burst => originalBurstShotCount,
+        FireMode.Auto => ResolveAutoBurstShotCount(originalBurstShotCount),
+        _ => originalBurstShotCount
+    };
+
 
     public IEnumerable<Gizmo> GetEquippedGizmos() {
         var pawn = GetEquippingPawn();
-        if (pawn == null || !CanShowFor(pawn)) {
-            yield break;
-        }
+        if (pawn == null || !CanShowFor(pawn)) yield break;
 
-        if (!PawnAttackGizmoUtility.CanShowEquipmentGizmos()) {
-            yield break;
-        }
+        if (!PawnAttackGizmoUtility.CanShowEquipmentGizmos()) yield break;
 
         var switchFireModeCommand = new Command_Action {
             defaultLabel = GetModeLabel(_currentMode),
@@ -57,8 +52,8 @@ public class CompFireSelector : ThingComp, IEquippedGizmoProvider {
     }
 
     private bool IsSwitchingFireMode(Pawn pawn) {
-        return pawn.CurJob?.def == JobDefOf.CRTeam_SwitchFireMode &&
-               pawn.CurJob.targetB.Thing == parent;
+        return pawn.CurJob?.def == JobDefOf.CRTeam_SwitchFireMode
+               && pawn.CurJob.targetB.Thing == parent;
     }
 
     private bool CanOpenSwitchFireModeMenu(Pawn pawn, out string disabledReason) {

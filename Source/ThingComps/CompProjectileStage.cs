@@ -11,7 +11,6 @@ public class CompProjectileStage : ThingComp {
     private bool _usesTargetLeanExposure;
 
     public float CoverInterceptRoll => _coverInterceptRoll;
-
     public bool HasCoverInterceptRoll => _coverInterceptRoll >= 0f;
     public bool HasPendingFlightSource => _pendingFlightSource.IsValid;
     public IntVec3 PendingFlightSource => _pendingFlightSource;

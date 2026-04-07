@@ -33,11 +33,10 @@ public class CompMagazine : ThingComp, IEquippedGizmoProvider {
 
     public override void Notify_UsedWeapon(Pawn pawn) {
         base.Notify_UsedWeapon(pawn);
-        if (_remainingShots <= 0) {
-            return;
-        }
+        if (_remainingShots <= 0) return;
 
-        _remainingShots--;
+        _remainingShots -= 1;
+
         if (Empty) {
             TryStartReloadAutomatically(pawn);
         }

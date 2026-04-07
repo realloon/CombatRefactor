@@ -1,3 +1,4 @@
+#if DEBUG
 using System.Diagnostics;
 using System.Text;
 using HarmonyLib;
@@ -5,7 +6,6 @@ using HarmonyLib;
 namespace CombatRefactor.Utility;
 
 public static class PerformanceProfiler {
-    #if DEBUG
     private const int ReportIntervalTicks = 600;
     private const int MaxEntriesPerReport = 8;
     private const double MinimumTotalMillisecondsToReport = 0.05d;
@@ -130,22 +130,15 @@ public static class PerformanceProfiler {
         public ScopeState? Parent { get; } = parent;
         public long StartTimestamp { get; } = startTimestamp;
     }
-    #else
-    public static Scope Measure(string name) => default;
-
-    #endif
 
     public readonly struct Scope : IDisposable {
-        #if DEBUG
         private readonly ScopeState? _state;
 
         internal Scope(ScopeState state) {
             _state = state;
         }
-        #endif
 
         public void Dispose() {
-            #if DEBUG
             if (_state == null) return;
 
             var elapsedTicks = Stopwatch.GetTimestamp() - _state.StartTimestamp;
@@ -154,7 +147,7 @@ public static class PerformanceProfiler {
             _state.Parent?.ChildTicks += elapsedTicks;
 
             RecordMeasurement(_state.Name, selfTicks);
-            #endif
         }
     }
 }
+#endif

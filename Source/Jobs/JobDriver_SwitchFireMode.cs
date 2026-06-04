@@ -19,7 +19,6 @@ public class JobDriver_SwitchFireMode : JobDriver {
 
     protected override IEnumerable<Toil> MakeNewToils() {
         this.FailOn(() => FireSelector == null);
-        this.FailOn(() => Weapon == null);
         this.FailOn(() => !FireSelector!.IsHeldBy(pawn));
         this.FailOn(() => !FireSelector!.SupportsMode(TargetMode));
         this.FailOn(() => FireSelector!.CurrentMode == TargetMode);
@@ -29,6 +28,6 @@ public class JobDriver_SwitchFireMode : JobDriver {
         wait.WithProgressBarToilDelay(ActorInd);
         yield return wait;
 
-        yield return Toils_General.Do(() => FireSelector?.CompleteSwitchFireMode(TargetMode));
+        yield return Toils_General.Do(() => FireSelector!.CompleteSwitchFireMode(TargetMode));
     }
 }

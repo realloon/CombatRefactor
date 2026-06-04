@@ -48,29 +48,29 @@ public static class ProjectileCoverUtility {
         ApplyPendingFlightSource(projectile);
         ApplyPendingFlightDestination(projectile);
         ApplyPendingProtectedLeanSupportCell(projectile);
-        projectile.TryGetComp<CompProjectileStage>()?.RollCoverIntercept();
+        projectile.GetComp<CompProjectileStage>().RollCoverIntercept();
     }
 
     public static void OverrideFlightSource(Projectile projectile, IntVec3 sourceCell) {
         if (!sourceCell.IsValid) return;
 
-        projectile.TryGetComp<CompProjectileStage>()?.SetPendingFlightSource(sourceCell);
+        projectile.GetComp<CompProjectileStage>().SetPendingFlightSource(sourceCell);
     }
 
     public static void OverrideFlightDestination(Projectile projectile, IntVec3 destinationCell) {
         if (!destinationCell.IsValid) return;
 
-        projectile.TryGetComp<CompProjectileStage>()?.SetPendingFlightDestination(destinationCell);
+        projectile.GetComp<CompProjectileStage>().SetPendingFlightDestination(destinationCell);
     }
 
     public static void OverrideProtectedLeanSupportCell(Projectile projectile, IntVec3 cell) {
         if (!cell.IsValid) return;
 
-        projectile.TryGetComp<CompProjectileStage>()?.SetPendingProtectedLeanSupportCell(cell);
+        projectile.GetComp<CompProjectileStage>().SetPendingProtectedLeanSupportCell(cell);
     }
 
     public static void MarkTargetUsesLeanExposure(Projectile projectile) {
-        projectile.TryGetComp<CompProjectileStage>()?.SetUsesTargetLeanExposure(true);
+        projectile.GetComp<CompProjectileStage>().SetUsesTargetLeanExposure(true);
     }
 
     public static IntVec3 ResolveProtectedLeanSupportCell(Map map, IntVec3 shooterCell, IntVec3 flightSource,
@@ -371,10 +371,7 @@ public static class ProjectileCoverUtility {
     }
 
     private static float GetCoverInterceptRoll(Projectile projectile) {
-        var comp = projectile.TryGetComp<CompProjectileStage>();
-        if (comp == null) {
-            return Rand.Value;
-        }
+        var comp = projectile.GetComp<CompProjectileStage>();
 
         if (!comp.HasCoverInterceptRoll) {
             comp.RollCoverIntercept();
@@ -384,10 +381,7 @@ public static class ProjectileCoverUtility {
     }
 
     private static void ApplyPendingFlightSource(Projectile projectile) {
-        var comp = projectile.TryGetComp<CompProjectileStage>();
-        if (comp == null) {
-            return;
-        }
+        var comp = projectile.GetComp<CompProjectileStage>();
 
         if (comp.HasPendingFlightSource) {
             comp.SetFlightSource(comp.PendingFlightSource);
@@ -401,8 +395,8 @@ public static class ProjectileCoverUtility {
     }
 
     private static void ApplyPendingFlightDestination(Projectile projectile) {
-        var comp = projectile.TryGetComp<CompProjectileStage>();
-        if (comp is not { HasPendingFlightDestination: true }) {
+        var comp = projectile.GetComp<CompProjectileStage>();
+        if (!comp.HasPendingFlightDestination) {
             return;
         }
 
@@ -413,8 +407,8 @@ public static class ProjectileCoverUtility {
     }
 
     private static void ApplyPendingProtectedLeanSupportCell(Projectile projectile) {
-        var comp = projectile.TryGetComp<CompProjectileStage>();
-        if (comp is not { HasPendingProtectedLeanSupportCell: true }) {
+        var comp = projectile.GetComp<CompProjectileStage>();
+        if (!comp.HasPendingProtectedLeanSupportCell) {
             return;
         }
 
@@ -423,16 +417,16 @@ public static class ProjectileCoverUtility {
     }
 
     private static IntVec3 GetTerminalFlightCell(Projectile projectile) {
-        var comp = projectile.TryGetComp<CompProjectileStage>();
-        return comp is { HasFlightDestination: true }
+        var comp = projectile.GetComp<CompProjectileStage>();
+        return comp.HasFlightDestination
             ? comp.FlightDestination
             : projectile.usedTarget.Cell;
     }
 
     private static bool RemapSegmentToLogicalFlightPath(Projectile projectile, ref Vector3 lastExactPos,
         ref Vector3 newExactPos) {
-        var comp = projectile.TryGetComp<CompProjectileStage>();
-        if (comp is not { HasFlightSource: true }) {
+        var comp = projectile.GetComp<CompProjectileStage>();
+        if (!comp.HasFlightSource) {
             return false;
         }
 
@@ -494,12 +488,8 @@ public static class ProjectileCoverUtility {
     }
 
     private static bool IsProtectedLeanSupportThing(Projectile projectile, IntVec3 cell, Thing thing) {
-        if (projectile.Map == null) {
-            return false;
-        }
-
-        var comp = projectile.TryGetComp<CompProjectileStage>();
-        return comp is { HasProtectedLeanSupportCell: true } &&
+        var comp = projectile.GetComp<CompProjectileStage>();
+        return comp.HasProtectedLeanSupportCell &&
                comp.ProtectedLeanSupportCell == cell &&
                cell.GetCover(projectile.Map) == thing;
     }
@@ -559,7 +549,7 @@ public static class ProjectileCoverUtility {
     }
 
     private static float GetLeanExposureFactor(Projectile projectile) {
-        var comp = projectile.TryGetComp<CompProjectileStage>();
-        return GetDirectTargetLeanFactor(comp is { UsesTargetLeanExposure: true });
+        var comp = projectile.GetComp<CompProjectileStage>();
+        return GetDirectTargetLeanFactor(comp.UsesTargetLeanExposure);
     }
 }

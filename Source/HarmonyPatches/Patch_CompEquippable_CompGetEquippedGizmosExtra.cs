@@ -22,10 +22,6 @@ public static class Patch_CompEquippable_CompGetEquippedGizmosExtra {
             yield return gizmo;
         }
 
-        if (compEquippable.parent == null) {
-            yield break;
-        }
-
         foreach (var comp in compEquippable.parent.AllComps) {
             if (comp is not IEquippedGizmoProvider gizmoProvider) {
                 continue;

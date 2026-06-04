@@ -18,7 +18,6 @@ public class JobDriver_ReloadMagazine : JobDriver {
 
     protected override IEnumerable<Toil> MakeNewToils() {
         this.FailOn(() => Magazine == null);
-        this.FailOn(() => Weapon == null);
         this.FailOn(() => !Magazine!.IsHeldBy(pawn));
         this.FailOn(() => !Magazine!.NeedsReload);
         this.FailOnIncapable(PawnCapacityDefOf.Manipulation);
@@ -29,7 +28,7 @@ public class JobDriver_ReloadMagazine : JobDriver {
         yield return wait;
 
         yield return Toils_General.Do(() => {
-            Magazine?.CompleteReload();
+            Magazine!.CompleteReload();
             SuspendedAttackJobStateUtility.DiscardInvalidQueuedAttack(pawn);
         });
     }

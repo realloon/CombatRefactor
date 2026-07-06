@@ -35,11 +35,6 @@ public static class Prefix_Verb_TryStartCastOn {
             return true;
         }
 
-        if (castTarg.Thing is Pawn { Faction: not null } targetPawn &&
-            !targetPawn.Faction.HostileTo(caster.Faction)) {
-            return true;
-        }
-
         if (!launchProjectile.TryFindShootLineFromTo(caster.Position, castTarg, out var resultingLine)) {
             return true;
         }

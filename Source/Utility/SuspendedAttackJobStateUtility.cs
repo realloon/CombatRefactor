@@ -6,7 +6,6 @@ namespace CombatRefactor.Utility;
 public static class SuspendedAttackJobStateUtility {
     private sealed class SuspendedAttackState {
         public Job SuspendedJob { get; set; } = null!;
-
         public bool TargetWasDowned { get; set; }
     }
 
@@ -14,6 +13,7 @@ public static class SuspendedAttackJobStateUtility {
 
     public static void Record(Pawn pawn, Job? job) {
         Clear(pawn);
+
         if (job?.def != RimWorld.JobDefOf.AttackStatic || job.targetA.Thing is not Pawn targetPawn) {
             return;
         }

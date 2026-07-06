@@ -8,6 +8,8 @@ public class CompFireSelector : ThingComp, IEquippedGizmoProvider {
 
     private CompProperties_FireSelector Props => (CompProperties_FireSelector)props;
 
+    public FireMode CurrentMode => _currentMode;
+
     public override void Initialize(CompProperties properties) {
         base.Initialize(properties);
         _currentMode = GetDefaultMode();
@@ -46,9 +48,7 @@ public class CompFireSelector : ThingComp, IEquippedGizmoProvider {
         yield return switchFireModeCommand;
     }
 
-    public bool IsHeldBy(Pawn pawn) {
-        return pawn.equipment?.Primary == parent && GetEquippingPawn() == pawn;
-    }
+    public bool IsHeldBy(Pawn pawn) => pawn.equipment?.Primary == parent && GetEquippingPawn() == pawn;
 
     private bool IsSwitchingFireMode(Pawn pawn) {
         return pawn.CurJob?.def == JobDefOf.CRTeam_SwitchFireMode
@@ -75,27 +75,20 @@ public class CompFireSelector : ThingComp, IEquippedGizmoProvider {
         return true;
     }
 
-    public FireMode CurrentMode => _currentMode;
-
-
     public void CompleteSwitchFireMode(FireMode targetMode) {
         _currentMode = targetMode;
     }
 
-    private bool TryStartSwitchFireModeJob(Pawn pawn, FireMode targetMode, bool showFailureMessage = true) {
+    private void StartSwitchFireModeJob(Pawn pawn, FireMode targetMode) {
         if (!CanSwitchToFireMode(pawn, targetMode, out var disabledReason)) {
-            if (showFailureMessage && !disabledReason.NullOrEmpty()) {
-                Messages.Message(disabledReason, pawn, MessageTypeDefOf.RejectInput, historical: false);
-            }
-
-            return false;
+            Messages.Message(disabledReason, pawn, MessageTypeDefOf.RejectInput, historical: false);
+            return;
         }
 
         var switchFireModeJob = JobMaker.MakeJob(JobDefOf.CRTeam_SwitchFireMode, pawn, parent);
         switchFireModeJob.count = (int)targetMode;
         pawn.jobs.StartJob(switchFireModeJob, JobCondition.InterruptForced, resumeCurJobAfterwards: true,
             tag: JobTag.Misc);
-        return true;
     }
 
     private bool CanSwitchToFireMode(Pawn pawn, FireMode targetMode, out string disabledReason) {
@@ -117,15 +110,11 @@ public class CompFireSelector : ThingComp, IEquippedGizmoProvider {
         return true;
     }
 
-    private FireMode GetDefaultMode() {
-        return HasBurstMode() ? FireMode.Burst : FireMode.Single;
-    }
+    private FireMode GetDefaultMode() => HasBurstMode() ? FireMode.Burst : FireMode.Single;
 
     private void ShowSwitchFireModeMenu(Pawn pawn) {
         if (!CanOpenSwitchFireModeMenu(pawn, out var disabledReason)) {
-            if (!disabledReason.NullOrEmpty()) {
-                Messages.Message(disabledReason, pawn, MessageTypeDefOf.RejectInput, historical: false);
-            }
+            Messages.Message(disabledReason, pawn, MessageTypeDefOf.RejectInput, historical: false);
 
             return;
         }
@@ -133,7 +122,7 @@ public class CompFireSelector : ThingComp, IEquippedGizmoProvider {
         var options = GetSupportedModes()
             .Select(mode => mode == _currentMode
                 ? new FloatMenuOption("CRTeam_FireModeCurrent".Translate(GetModeLabel(mode)), null)
-                : new FloatMenuOption(GetModeLabel(mode), () => TryStartSwitchFireModeJob(pawn, mode)))
+                : new FloatMenuOption(GetModeLabel(mode), () => StartSwitchFireModeJob(pawn, mode)))
             .ToList();
 
         Find.WindowStack.Add(new FloatMenu(options));
@@ -160,15 +149,13 @@ public class CompFireSelector : ThingComp, IEquippedGizmoProvider {
         _ => false
     };
 
-    private int ResolveAutoBurstShotCount(int burstShotCount) {
-        return Props.autoBurstShotCount > 0
-            ? Props.autoBurstShotCount
-            : burstShotCount * 2;
-    }
+    private int ResolveAutoBurstShotCount(int burstShotCount) => Props.autoBurstShotCount > 0
+        ? Props.autoBurstShotCount
+        : burstShotCount * 2;
 
-    private Pawn? GetEquippingPawn() {
-        return parent.ParentHolder is Pawn_EquipmentTracker equipmentTracker ? equipmentTracker.pawn : null;
-    }
+    private Pawn? GetEquippingPawn() => parent.ParentHolder is Pawn_EquipmentTracker equipmentTracker
+        ? equipmentTracker.pawn
+        : null;
 
     private static bool CanShowFor(Pawn pawn) {
         return pawn.drafter is { Drafted: true } &&

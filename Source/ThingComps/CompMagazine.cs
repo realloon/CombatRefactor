@@ -61,7 +61,7 @@ public class CompMagazine : ThingComp, IEquippedGizmoProvider {
             defaultDesc = "CRTeam_ReloadDesc".Translate(ReloadTicks.ToStringTicksToPeriod(shortForm: true)),
             icon = TexCommand.Attack,
             activateSound = SoundDefOf.Click,
-            action = () => TryStartReload(pawn)
+            action = () => StartReload(pawn)
         };
 
         if (!CanReload(pawn, out var disabledReason)) {
@@ -76,9 +76,7 @@ public class CompMagazine : ThingComp, IEquippedGizmoProvider {
                pawn.CurJob.targetB.Thing == parent;
     }
 
-    public bool IsHeldBy(Pawn pawn) {
-        return pawn.equipment?.Primary == parent && GetEquippingPawn() == pawn;
-    }
+    public bool IsHeldBy(Pawn pawn) => pawn.equipment?.Primary == parent && GetEquippingPawn() == pawn;
 
     private bool CanReload(Pawn pawn, out string disabledReason) {
         if (!IsHeldBy(pawn)) {
@@ -105,23 +103,18 @@ public class CompMagazine : ThingComp, IEquippedGizmoProvider {
         return true;
     }
 
-    private bool TryStartReload(Pawn pawn, bool showFailureMessage = true) {
+    private void StartReload(Pawn pawn) {
         if (!CanReload(pawn, out var disabledReason)) {
-            if (showFailureMessage && !disabledReason.NullOrEmpty()) {
-                Messages.Message(disabledReason, pawn, MessageTypeDefOf.RejectInput, historical: false);
-            }
-
-            return false;
+            Messages.Message(disabledReason, pawn, MessageTypeDefOf.RejectInput, historical: false);
+            return;
         }
 
         var reloadJob = JobMaker.MakeJob(JobDefOf.CRTeam_ReloadMagazine, pawn, parent);
-        return pawn.jobs.TryTakeOrderedJob(reloadJob, JobTag.Misc);
+        pawn.jobs.TryTakeOrderedJob(reloadJob, JobTag.Misc);
     }
 
     private void TryStartReloadAutomatically(Pawn pawn) {
-        if (!CanReload(pawn, out _)) {
-            return;
-        }
+        if (!CanReload(pawn, out _)) return;
 
         SuspendedAttackJobStateUtility.Record(pawn, pawn.CurJob);
         var reloadJob = JobMaker.MakeJob(JobDefOf.CRTeam_ReloadMagazine, pawn, parent);
@@ -148,9 +141,9 @@ public class CompMagazine : ThingComp, IEquippedGizmoProvider {
         return Math.Max(1, burstShotCount * DefaultMagazineCapacityBurstMultiplier);
     }
 
-    private Pawn? GetEquippingPawn() {
-        return parent.ParentHolder is Pawn_EquipmentTracker equipmentTracker ? equipmentTracker.pawn : null;
-    }
+    private Pawn? GetEquippingPawn() => parent.ParentHolder is Pawn_EquipmentTracker equipmentTracker
+        ? equipmentTracker.pawn
+        : null;
 
     private static bool CanShowFor(Pawn pawn) {
         return pawn.drafter is { Drafted: true } &&

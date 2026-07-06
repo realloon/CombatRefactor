@@ -25,7 +25,6 @@ public class CompFireSelector : ThingComp, IEquippedGizmoProvider {
         _ => originalBurstShotCount
     };
 
-
     public IEnumerable<Gizmo> GetEquippedGizmos() {
         var pawn = GetEquippingPawn();
         if (pawn == null || !CanShowFor(pawn)) yield break;

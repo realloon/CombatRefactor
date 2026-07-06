@@ -240,9 +240,9 @@ public static class ProjectileCoverUtility {
 
             #if DEBUG
             using (PerformanceProfiler.Measure("Cover.TryHandleDirectTargetImpact.Impact")) {
-                #endif
-                Impact(projectile, pawn, false);
-                #if DEBUG
+            #endif
+            Impact(projectile, pawn, false);
+            #if DEBUG
             }
             #endif
         } else {
@@ -250,9 +250,9 @@ public static class ProjectileCoverUtility {
 
             #if DEBUG
             using (PerformanceProfiler.Measure("Cover.TryHandleDirectTargetImpact.Impact")) {
-                #endif
-                Impact(projectile, null!, false);
-                #if DEBUG
+            #endif
+            Impact(projectile, null!, false);
+            #if DEBUG
             }
             #endif
         }
@@ -316,9 +316,9 @@ public static class ProjectileCoverUtility {
 
             #if DEBUG
             using (PerformanceProfiler.Measure("Cover.TryInterceptCoverAtCell.Impact")) {
-                #endif
-                Impact(projectile, thing, false);
-                #if DEBUG
+            #endif
+            Impact(projectile, thing, false);
+            #if DEBUG
             }
             #endif
 

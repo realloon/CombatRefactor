@@ -173,9 +173,7 @@ public static class ProjectileCoverUtility {
         }
 
         foreach (var cell in GenSight.PointsOnLineOfSight(sourceCell, destinationCell)) {
-            if (cell == sourceCell) {
-                continue;
-            }
+            if (cell == sourceCell) continue;
 
             if (CellHasFriendlyPawnBlocker(launcher, map, cell, intendedTarget)) {
                 return true;
@@ -225,7 +223,7 @@ public static class ProjectileCoverUtility {
         using var _ = PerformanceProfiler.Measure("Cover.TryHandleDirectTargetImpact");
         #endif
 
-        if (!projectile.usedTarget.HasThing || projectile.usedTarget.Thing is not Pawn pawn) {
+        if (projectile.usedTarget.Thing is not Pawn pawn) {
             return false;
         }
 
@@ -504,7 +502,7 @@ public static class ProjectileCoverUtility {
 
             if (pawn == launcher || pawn == intendedTarget.Thing) continue;
 
-            if (pawn.Faction == null || launcher.Faction == null || pawn.Faction.HostileTo(launcher.Faction)) {
+            if (pawn.Faction == null || pawn.Faction.HostileTo(launcher.Faction)) {
                 continue;
             }
 
@@ -528,20 +526,18 @@ public static class ProjectileCoverUtility {
             interceptStrength *= 0.1f;
         }
 
-        if (projectile.Launcher != null &&
-            pawn.Faction != null &&
-            projectile.Launcher.Faction != null &&
-            !pawn.Faction.HostileTo(projectile.Launcher.Faction)) {
+        var isFriendlyPawn = projectile.Launcher?.Faction != null
+                             && pawn.Faction != null
+                             && !pawn.Faction.HostileTo(projectile.Launcher.Faction);
+        if (isFriendlyPawn) {
             interceptStrength *= Find.Storyteller.difficulty.friendlyFireChanceFactor;
         }
 
-        if (interceptStrength <= 0f) return 0f;
+        if (interceptStrength <= 0f) {
+            return 0f;
+        }
 
-        if (projectile.Launcher != null &&
-            pawn.Faction != null &&
-            projectile.Launcher.Faction != null &&
-            !pawn.Faction.HostileTo(projectile.Launcher.Faction) &&
-            PreventFriendlyFireRef(projectile)) {
+        if (isFriendlyPawn && PreventFriendlyFireRef(projectile)) {
             return 0f;
         }
 

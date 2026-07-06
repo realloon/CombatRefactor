@@ -16,12 +16,17 @@ namespace CombatRefactor.HarmonyPatches;
 })]
 public static class Prefix_Verb_TryStartCastOn {
     [UsedImplicitly]
-    public static bool Prefix(Verb __instance, LocalTargetInfo castTarg, ref bool __result) {
+    public static bool Prefix(Verb __instance, LocalTargetInfo castTarg, bool canHitNonTargetPawns,
+        ref bool __result) {
         #if DEBUG
         using var _ = PerformanceProfiler.Measure("Patch.Verb.TryStartCastOn");
         #endif
 
         if (__instance is not Verb_LaunchProjectile launchProjectile) {
+            return true;
+        }
+
+        if (!canHitNonTargetPawns) {
             return true;
         }
 

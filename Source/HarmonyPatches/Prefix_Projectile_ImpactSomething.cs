@@ -9,5 +9,9 @@ namespace CombatRefactor.HarmonyPatches;
 [HarmonyPatch(typeof(Projectile), "ImpactSomething")]
 public static class Prefix_Projectile_ImpactSomething {
     [UsedImplicitly]
-    public static bool Prefix(Projectile __instance) => !ProjectileCoverUtility.TryHandleDirectTargetImpact(__instance);
+    public static bool Prefix(Projectile __instance) {
+        if (__instance.def.projectile.flyOverhead) return true;
+
+        return !ProjectileCoverUtility.TryHandleDirectTargetImpact(__instance);
+    }
 }

@@ -11,11 +11,11 @@ public static class ProjectileReadoutUtility {
     public static bool TryBuildShotCalculationTipString(Thing target, out string readout) {
         readout = string.Empty;
 
-        if (Find.Selector.SingleSelectedThing == null) {
+        var selectedThing = Find.Selector.SingleSelectedThing;
+        if (selectedThing == null) {
             return false;
         }
 
-        var selectedThing = Find.Selector.SingleSelectedThing;
         var verb = ResolveVerb(selectedThing, target);
         if (verb == null) {
             return false;

@@ -18,16 +18,19 @@ public class JobDriver_SwitchFireMode : JobDriver {
     public override bool TryMakePreToilReservations(bool errorOnFailed) => true;
 
     protected override IEnumerable<Toil> MakeNewToils() {
-        this.FailOn(() => FireSelector == null);
-        this.FailOn(() => !FireSelector!.IsHeldBy(pawn));
-        this.FailOn(() => !FireSelector!.SupportsMode(TargetMode));
-        this.FailOn(() => FireSelector!.CurrentMode == TargetMode);
+        var fireSelector = FireSelector ?? throw new InvalidOperationException(
+            "Switch fire mode job requires CompFireSelector target.");
+        var targetMode = TargetMode;
+
+        this.FailOn(() => !fireSelector.IsHeldBy(pawn));
+        this.FailOn(() => !fireSelector.SupportsMode(targetMode));
+        this.FailOn(() => fireSelector.CurrentMode == targetMode);
         this.FailOn(() => !pawn.health.capacities.CapableOf(PawnCapacityDefOf.Manipulation));
 
         var wait = Toils_General.Wait(CompFireSelector.SwitchFireModeTicks);
         wait.WithProgressBarToilDelay(ActorInd);
         yield return wait;
 
-        yield return Toils_General.Do(() => FireSelector!.CompleteSwitchFireMode(TargetMode));
+        yield return Toils_General.Do(() => fireSelector.CompleteSwitchFireMode(targetMode));
     }
 }

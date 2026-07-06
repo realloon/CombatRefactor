@@ -23,9 +23,3 @@ Switch weapons between single, burst, and automatic fire.
 **Magazine**
 
 Weapons use magazines with explicit capacity and reload time.
-
-### Performance
-
-**Projectile runtime**
-
-Projectile cover traversal and removal are optimized for lower overhead.

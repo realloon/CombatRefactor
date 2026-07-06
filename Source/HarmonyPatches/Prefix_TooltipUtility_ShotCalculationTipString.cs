@@ -7,7 +7,7 @@ using CombatRefactor.Utility;
 namespace CombatRefactor.HarmonyPatches;
 
 [HarmonyPatch(typeof(TooltipUtility), nameof(TooltipUtility.ShotCalculationTipString))]
-public static class Patch_TooltipUtility_ShotCalculationTipString {
+public static class Prefix_TooltipUtility_ShotCalculationTipString {
     [UsedImplicitly]
     public static bool Prefix(Thing target, ref string __result) {
         if (!ProjectileReadoutUtility.TryBuildShotCalculationTipString(target, out var readout)) {

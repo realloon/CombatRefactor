@@ -6,7 +6,7 @@ using HarmonyLib;
 namespace CombatRefactor.HarmonyPatches;
 
 [HarmonyPatch(typeof(Verb), nameof(Verb.Available))]
-public static class Patch_Verb_Available {
+public static class Postfix_Verb_Available {
     [UsedImplicitly]
     public static void Postfix(Verb __instance, ref bool __result) {
         if (!__result) return;

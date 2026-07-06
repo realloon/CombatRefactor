@@ -7,7 +7,7 @@ using CombatRefactor.Utility;
 namespace CombatRefactor.HarmonyPatches;
 
 [HarmonyPatch(typeof(CompEquippable), nameof(CompEquippable.CompGetEquippedGizmosExtra))]
-public static class Patch_CompEquippable_CompGetEquippedGizmosExtra {
+public static class Postfix_CompEquippable_CompGetEquippedGizmosExtra {
     [UsedImplicitly]
     public static void Postfix(CompEquippable __instance, ref IEnumerable<Gizmo> __result) {
         __result = AppendEquippedGizmos(__result, __instance);

@@ -7,7 +7,7 @@ using CombatRefactor.Utility;
 namespace CombatRefactor.HarmonyPatches;
 
 [HarmonyPatch(typeof(ArmorUtility), nameof(ArmorUtility.GetPostArmorDamage))]
-public static class Patch_ArmorUtility_GetPostArmorDamage {
+public static class Prefix_ArmorUtility_GetPostArmorDamage {
     [UsedImplicitly]
     public static bool Prefix(Pawn pawn, float amount, float armorPenetration, BodyPartRecord part,
         ref DamageDef damageDef, ref bool deflectedByMetalArmor, ref bool diminishedByMetalArmor, ref float __result) {

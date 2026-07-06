@@ -6,7 +6,7 @@ using JetBrains.Annotations;
 namespace CombatRefactor.HarmonyPatches;
 
 [HarmonyPatch(typeof(PawnLeaner), nameof(PawnLeaner.ShouldLean))]
-public static class Patch_PawnLeaner_ShouldLean {
+public static class Prefix_PawnLeaner_ShouldLean {
     private static readonly AccessTools.FieldRef<PawnLeaner, Pawn> PawnRef =
         AccessTools.FieldRefAccess<PawnLeaner, Pawn>("pawn");
 

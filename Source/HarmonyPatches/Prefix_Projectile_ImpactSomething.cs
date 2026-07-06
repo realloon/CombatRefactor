@@ -7,7 +7,7 @@ using CombatRefactor.Utility;
 namespace CombatRefactor.HarmonyPatches;
 
 [HarmonyPatch(typeof(Projectile), "ImpactSomething")]
-public static class Patch_Projectile_ImpactSomething {
+public static class Prefix_Projectile_ImpactSomething {
     [UsedImplicitly]
     public static bool Prefix(Projectile __instance) => !ProjectileCoverUtility.TryHandleDirectTargetImpact(__instance);
 }

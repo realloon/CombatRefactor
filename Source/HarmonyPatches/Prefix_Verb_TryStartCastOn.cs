@@ -14,7 +14,7 @@ namespace CombatRefactor.HarmonyPatches;
     typeof(bool),
     typeof(bool)
 })]
-public static class Patch_Verb_TryStartCastOn {
+public static class Prefix_Verb_TryStartCastOn {
     [UsedImplicitly]
     public static bool Prefix(Verb __instance, LocalTargetInfo castTarg, ref bool __result) {
         #if DEBUG

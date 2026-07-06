@@ -7,7 +7,7 @@ using CombatRefactor.Utility;
 namespace CombatRefactor.HarmonyPatches;
 
 [HarmonyPatch(typeof(Stance_Warmup), nameof(Stance_Warmup.StanceDraw))]
-public static class Patch_Stance_Warmup_StanceDraw {
+public static class Postfix_Stance_Warmup_StanceDraw {
     [UsedImplicitly]
     public static void Postfix(Stance_Warmup __instance) {
         #if DEBUG

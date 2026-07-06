@@ -17,7 +17,7 @@ namespace CombatRefactor.HarmonyPatches;
     typeof(Thing),
     typeof(ThingDef)
 })]
-public static class Patch_Projectile_Launch {
+public static class Postfix_Projectile_Launch {
     [UsedImplicitly]
     public static void Postfix(Projectile __instance) {
         ProjectileCoverUtility.InitializeForLaunch(__instance);

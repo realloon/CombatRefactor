@@ -7,7 +7,7 @@ using CombatRefactor.Utility;
 namespace CombatRefactor.HarmonyPatches;
 
 [HarmonyPatch(typeof(Verb), nameof(Verb.DrawHighlight))]
-public static class Patch_Verb_DrawHighlight {
+public static class Postfix_Verb_DrawHighlight {
     [UsedImplicitly]
     public static void Postfix(Verb __instance, LocalTargetInfo target) {
         #if DEBUG

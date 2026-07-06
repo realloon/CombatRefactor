@@ -7,7 +7,7 @@ using CombatRefactor.Utility;
 namespace CombatRefactor.HarmonyPatches;
 
 [HarmonyPatch(typeof(Verb_LaunchProjectile), "TryCastShot")]
-public static class Patch_Verb_LaunchProjectile_TryCastShot {
+public static class Prefix_Verb_LaunchProjectile_TryCastShot {
     private static readonly AccessTools.FieldRef<Verb, int> LastShotTickRef =
         AccessTools.FieldRefAccess<Verb, int>("lastShotTick");
 

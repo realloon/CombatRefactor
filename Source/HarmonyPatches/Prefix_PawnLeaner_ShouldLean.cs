@@ -16,7 +16,7 @@ public static class Prefix_PawnLeaner_ShouldLean {
     [UsedImplicitly]
     public static bool Prefix(PawnLeaner __instance, ref bool __result) {
         var pawn = PawnRef(__instance);
-        if (pawn?.stances?.curStance is not Stance_Busy busyStance ||
+        if (pawn.stances.curStance is not Stance_Busy busyStance ||
             ShootSourceOffsetRef(__instance) == IntVec3.Zero) {
             __result = false;
             return false;

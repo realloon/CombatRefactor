@@ -35,7 +35,6 @@ public static class ProjectileCoverUtility {
         foreach (var def in DefDatabase<ThingDef>.AllDefsListForReading) {
             if (def.projectile == null) continue;
 
-            def.comps ??= [];
             if (def.comps.Any(props => props.compClass == typeof(CompProjectileStage))) {
                 continue;
             }
@@ -284,7 +283,7 @@ public static class ProjectileCoverUtility {
 
         var terminalFlightCell = GetTerminalFlightCell(projectile);
 
-        if (projectile.Map == null || terminalFlightCell == cell) {
+        if (terminalFlightCell == cell) {
             return false;
         }
 

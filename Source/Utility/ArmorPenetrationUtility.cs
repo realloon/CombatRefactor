@@ -10,9 +10,9 @@ public static class ArmorPenetrationUtility {
     private const float BluntDurabilityScale = 0.35f;
     private const float SharpAbsorbDurabilityScale = 0.25f;
     private const float SharpPenetrationDurabilityScale = 0.12f;
-    private static readonly BodyPartGroupDef? ArmsGroup = DefDatabase<BodyPartGroupDef>.GetNamedSilentFail("Arms");
-    private static readonly BodyPartGroupDef? HandsGroup = DefDatabase<BodyPartGroupDef>.GetNamedSilentFail("Hands");
-    private static readonly BodyPartGroupDef? FeetGroup = DefDatabase<BodyPartGroupDef>.GetNamedSilentFail("Feet");
+    private static readonly BodyPartGroupDef ArmsGroup = DefDatabase<BodyPartGroupDef>.GetNamed("Arms");
+    private static readonly BodyPartGroupDef HandsGroup = DefDatabase<BodyPartGroupDef>.GetNamed("Hands");
+    private static readonly BodyPartGroupDef FeetGroup = DefDatabase<BodyPartGroupDef>.GetNamed("Feet");
 
     public static bool ShouldHandle(DamageDef damageDef) {
         return damageDef.armorCategory == DamageArmorCategoryDefOf.Sharp ||
@@ -217,7 +217,7 @@ public static class ArmorPenetrationUtility {
             return true;
         }
 
-        if (IsHandExtremity(part) && ArmsGroup != null && apparel.def.apparel.bodyPartGroups.Contains(ArmsGroup)) {
+        if (IsHandExtremity(part) && apparel.def.apparel.bodyPartGroups.Contains(ArmsGroup)) {
             return true;
         }
 
@@ -238,18 +238,16 @@ public static class ArmorPenetrationUtility {
         return part.def.defName is "Hand" or "Finger" ||
                part.IsInGroup(BodyPartGroupDefOf.LeftHand) ||
                part.IsInGroup(BodyPartGroupDefOf.RightHand) ||
-               HandsGroup != null && part.IsInGroup(HandsGroup);
+               part.IsInGroup(HandsGroup);
     }
 
     private static bool IsFootExtremity(BodyPartRecord part) {
-        return part.def.defName is "Foot" or "Toe" ||
-               FeetGroup != null && part.IsInGroup(FeetGroup);
+        return part.def.defName is "Foot" or "Toe" || part.IsInGroup(FeetGroup);
     }
 
     private static bool IsBluntDamage(DamageDef damageDef) {
-        return damageDef == DamageDefOf.Blunt
-               || damageDef.workerClass != null
-               && typeof(DamageWorker_Blunt).IsAssignableFrom(damageDef.workerClass);
+        return damageDef == DamageDefOf.Blunt ||
+               typeof(DamageWorker_Blunt).IsAssignableFrom(damageDef.workerClass);
     }
 
     private readonly struct ArmorLayer(Apparel? apparel, float armorRating, float bluntArmorRating, bool isMetal) {

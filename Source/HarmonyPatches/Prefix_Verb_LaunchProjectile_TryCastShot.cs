@@ -135,7 +135,7 @@ public static class Prefix_Verb_LaunchProjectile_TryCastShot {
             directHitFlags |= ProjectileHitFlags.NonTargetPawns;
         }
 
-        if (!currentTarget.HasThing || currentTarget.Thing?.def.Fillage == FillCategory.Full) {
+        if (!currentTarget.HasThing || currentTarget.Thing.def.Fillage == FillCategory.Full) {
             directHitFlags |= ProjectileHitFlags.NonTargetWorld;
         }
 

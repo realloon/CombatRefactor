@@ -130,13 +130,10 @@ public class CompMagazine : ThingComp, IEquippedGizmoProvider {
             return Props.magazineCapacity;
         }
 
-        var burstShotCount = 1;
-        if (parent.def.Verbs != null) {
-            burstShotCount = parent.def.Verbs
-                .Select(verb => verb.burstShotCount)
-                .Prepend(burstShotCount)
-                .Max();
-        }
+        var burstShotCount = parent.def.Verbs
+            .Select(verb => verb.burstShotCount)
+            .Prepend(1)
+            .Max();
 
         return Math.Max(1, burstShotCount * DefaultMagazineCapacityBurstMultiplier);
     }

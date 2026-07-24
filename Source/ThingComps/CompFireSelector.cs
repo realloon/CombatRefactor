@@ -139,7 +139,7 @@ public class CompFireSelector : ThingComp, IEquippedGizmoProvider {
     }
 
     private bool HasBurstMode() {
-        return parent.def.Verbs != null && Enumerable.Any(parent.def.Verbs, verb => verb.burstShotCount > 1);
+        return parent.def.Verbs.Any(verb => verb.burstShotCount > 1);
     }
 
     public bool SupportsMode(FireMode mode) => mode switch {

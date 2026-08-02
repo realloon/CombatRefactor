@@ -76,7 +76,7 @@ public class CompMagazine : ThingComp, IEquippedGizmoProvider {
                pawn.CurJob.targetB.Thing == parent;
     }
 
-    public bool IsHeldBy(Pawn pawn) => pawn.equipment?.Primary == parent && GetEquippingPawn() == pawn;
+    public bool IsHeldBy(Pawn pawn) => pawn != null && pawn.equipment?.Primary == parent && GetEquippingPawn() == pawn;
 
     private bool CanReload(Pawn pawn, out string disabledReason) {
         if (!IsHeldBy(pawn)) {

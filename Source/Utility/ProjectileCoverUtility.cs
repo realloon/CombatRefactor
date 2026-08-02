@@ -201,7 +201,7 @@ public static class ProjectileCoverUtility {
 
         var interceptors = projectile.Map.listerThings.ThingsInGroup(ThingRequestGroup.ProjectileInterceptor);
         if (Enumerable.Any(interceptors, t => t.TryGetComp<CompProjectileInterceptor>()
-                .CheckIntercept(projectile, lastExactPos, newExactPos))) {
+                ?.CheckIntercept(projectile, lastExactPos, newExactPos) == true)) {
             Impact(projectile, null!, true);
             return true;
         }

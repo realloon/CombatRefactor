@@ -48,7 +48,7 @@ public class CompFireSelector : ThingComp, IEquippedGizmoProvider {
         yield return switchFireModeCommand;
     }
 
-    public bool IsHeldBy(Pawn pawn) => pawn.equipment?.Primary == parent && GetEquippingPawn() == pawn;
+    public bool IsHeldBy(Pawn pawn) => pawn != null && pawn.equipment?.Primary == parent && GetEquippingPawn() == pawn;
 
     private bool IsSwitchingFireMode(Pawn pawn) {
         return pawn.CurJob?.def == JobDefOf.CRTeam_SwitchFireMode

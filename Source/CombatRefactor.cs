@@ -24,7 +24,13 @@ public static class CombatRefactor {
 
     private static void InjectTestFireSelector() {
         var assaultRifle = DefDatabase<ThingDef>.GetNamedSilentFail("Gun_AssaultRifle");
-        assaultRifle.comps.Add(new CompProperties_FireSelector());
-        assaultRifle.comps.Add(new CompProperties_Magazine());
+        if (assaultRifle == null) return;
+        assaultRifle.comps ??= [];
+        if (assaultRifle.comps.All(props => props.compClass != typeof(CompFireSelector))) {
+            assaultRifle.comps.Add(new CompProperties_FireSelector());
+        }
+        if (assaultRifle.comps.All(props => props.compClass != typeof(CompMagazine))) {
+            assaultRifle.comps.Add(new CompProperties_Magazine());
+        }
     }
 }

@@ -7,19 +7,21 @@ public static class ProjectileAccuracyUtility {
     private const float SpreadCurveExponent = 2f;
     private const float AdditionalBurstShotAccuracyPenalty = 0.1f;
 
-    private static readonly SimpleCurve ShooterAccuracyFactorCurve = [
-        new CurvePoint(0.70f, 0.15f),
-        new CurvePoint(0.80f, 0.28f),
-        new CurvePoint(0.89f, 0.42f),
-        new CurvePoint(0.91f, 0.48f),
-        new CurvePoint(0.935f, 0.58f),
-        new CurvePoint(0.965f, 0.74f),
-        new CurvePoint(0.9817f, 0.86f),
-        new CurvePoint(0.9867f, 0.94f),
-        new CurvePoint(0.9883f, 0.97f),
-        new CurvePoint(0.99f, 1.00f),
-        new CurvePoint(1.00f, 1.00f)
-    ];
+    private static readonly SimpleCurve ShooterAccuracyFactorCurve = BuildShooterAccuracyFactorCurve();
+
+    private static SimpleCurve BuildShooterAccuracyFactorCurve() {
+        var stat = StatDefOf.ShootingAccuracyPawn.postProcessCurve;
+        var points = new List<CurvePoint> { new(0.70f, 0.15f), new(0.80f, 0.28f) };
+
+        for (var level = 0; level <= 20; level++) {
+            // f(L) = 0.42 + 0.0409192L - 0.00059596L^2  ->  f(0)=0.42, f(9)=0.74, f(20)=1
+            points.Add(new CurvePoint(stat.Evaluate(level),
+                Mathf.Clamp01(0.42f + 0.0409192f * level - 0.00059596f * level * level)));
+        }
+
+        points.Add(new CurvePoint(1f, 1f));
+        return [.. points];
+    }
 
     public static float GetWeaponAccuracy(Verb_LaunchProjectile verb) {
         var equipment = verb.EquipmentSource;

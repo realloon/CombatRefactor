@@ -28,7 +28,7 @@ public static class ArmorPenetrationUtility {
         deflectedByMetalArmor = false;
         diminishedByMetalArmor = false;
 
-        if (amount <= 0f) return amount;
+        if (amount <= 0f || part == null) return amount;
 
         if (damageDef.armorCategory == DamageArmorCategoryDefOf.Sharp) {
             return ResolveSharpDamage(pawn, amount, armorPenetration, part, out deflectedByMetalArmor,
